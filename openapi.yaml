@@ -1,0 +1,1290 @@
+openapi: 3.0.3
+info:
+  title: Hackathon Platform API
+  description: |
+    REST API веб-платформы для проведения хакатонов.
+    Курсовой проект: клиент-серверное приложение (Go + React + PostgreSQL).
+
+    **Домен:** хакатон — соревнование команд за ограниченное время; результат — прототип + демо + питч.
+    Платформа покрывает: публикацию события, треки/кейсы, регистрацию, команды с ролями, сдачу артефактов до дедлайна.
+
+    Полная спецификация страниц и use-case: `docs_coursework/TECHNICAL_IMPLEMENTATION.md`
+  version: 0.1.0
+  contact:
+    name: PiRKSPCoursework
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+  - url: https://api.example.com/api/v1
+    description: Production (placeholder)
+
+tags:
+  - name: Auth
+    description: Регистрация и вход
+  - name: Users
+    description: Профиль пользователя
+  - name: Hackathons
+    description: Хакатоны (публичный каталог и карточка)
+  - name: Organizer
+    description: Управление хакатонами (роль organizer)
+  - name: Tracks
+    description: Треки направлений внутри хакатона
+  - name: Cases
+    description: Кейсы (задачи заказчика) внутри трека
+  - name: Participation
+    description: Регистрация участника на хакатон
+  - name: Teams
+    description: Команды и участники
+  - name: Submissions
+    description: Финальные артефакты команды
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Регистрация аккаунта
+      operationId: authRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Аккаунт создан, возвращён JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email уже занят
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Вход
+      operationId: authLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Текущий пользователь
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Users]
+      summary: Обновить профиль
+      operationId: updateMe
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /hackathons:
+    get:
+      tags: [Hackathons]
+      summary: Список опубликованных хакатонов
+      description: |
+        Публичный каталог. По умолчанию — события в статусах `registration`, `running`, `finished`.
+        Черновики (`draft`) видны только организатору через `/organizer/hackathons`.
+      operationId: listHackathons
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/HackathonStatus'
+          style: form
+          explode: true
+        - name: q
+          in: query
+          description: Поиск по названию
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HackathonListItem'
+
+  /hackathons/{hackathonId}:
+    get:
+      tags: [Hackathons]
+      summary: Карточка хакатона
+      description: Описание, таймлайн, треки с кейсами. Публично для не-draft.
+      operationId: getHackathon
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackathonDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /hackathons/{hackathonId}/participation:
+    get:
+      tags: [Participation]
+      summary: Статус участия текущего пользователя
+      description: |
+        Единая точка для страницы «Участие»: зарегистрирован ли, есть ли команда, можно ли сдавать работу.
+      operationId: getMyParticipation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipationStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /hackathons/{hackathonId}/register:
+    post:
+      tags: [Participation]
+      summary: Записаться на хакатон (индивидуальная регистрация)
+      description: |
+        Доступно в статусе `registration` и до `registration_closes_at`.
+        После этого участник может создать или вступить в команду.
+      operationId: registerForHackathon
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackathonRegistration'
+        '400':
+          description: Регистрация закрыта или уже зарегистрирован
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Только роль participant (organizer не регистрируется как участник)
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Participation]
+      summary: Отменить регистрацию на хакатон
+      description: Нельзя, если пользователь уже в команде с сабмитом (упрощённо — нельзя в команде).
+      operationId: unregisterFromHackathon
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '204':
+          description: Регистрация отменена
+        '400':
+          description: Нельзя отменить (уже в команде)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /hackathons/{hackathonId}/teams:
+    get:
+      tags: [Teams]
+      summary: Список команд хакатона
+      description: Публичный список названий команд (без PII участников) или с составом — на усмотрение MVP (здесь — с составом для прозрачности).
+      operationId: listTeams
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Team'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Teams]
+      summary: Создать команду
+      description: |
+        Создатель становится капитаном и участником с ролью `team_lead`.
+        Требуется предварительная регистрация на хакатон.
+      operationId: createTeam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          description: Уже в команде / лимит команд / регистрация закрыта
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams/{teamId}:
+    get:
+      tags: [Teams]
+      summary: Карточка команды
+      operationId: getTeam
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Teams]
+      summary: Обновить команду (капитан)
+      description: Смена названия, трека, кейса. Только капитан.
+      operationId: updateTeam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeamRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '403':
+          description: Не капитан
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams/{teamId}/join:
+    post:
+      tags: [Teams]
+      summary: Вступить в команду
+      description: |
+        Проверяется `max_team_size` хакатона. Участник должен быть зарегистрирован на хакатон.
+        Роль в команде можно передать сразу или выставить позже через PATCH member.
+      operationId: joinTeam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinTeamRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          description: Команда полна / уже в другой команде
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams/{teamId}/leave:
+    post:
+      tags: [Teams]
+      summary: Покинуть команду
+      description: Капитан не может выйти, не передав капитанство (MVP — запрет выхода капитана).
+      operationId: leaveTeam
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      responses:
+        '204':
+          description: Вышел из команды
+        '400':
+          description: Капитан не может выйти без расформирования
+
+  /teams/{teamId}/members/{userId}:
+    patch:
+      tags: [Teams]
+      summary: Обновить роль участника в команде
+      description: Себя или капитан меняет любого.
+      operationId: updateTeamMemberRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [team_role]
+              properties:
+                team_role:
+                  $ref: '#/components/schemas/TeamMemberRole'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+        '403':
+          description: Нет прав
+
+  /teams/{teamId}/submission:
+    get:
+      tags: [Submissions]
+      summary: Сабмит команды
+      operationId: getTeamSubmission
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '404':
+          description: Сабмит ещё не создан
+    put:
+      tags: [Submissions]
+      summary: Создать или обновить сабмит
+      description: |
+        Доступно участникам команды до `submission_deadline_at` хакатона.
+        Артефакты: репозиторий (обяз.), демо, питч, видео (опц.).
+      operationId: upsertTeamSubmission
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeamId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertSubmissionRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '400':
+          description: Дедлайн прошёл / не выбран кейс
+        '403':
+          description: Не член команды
+
+  /organizer/hackathons:
+    get:
+      tags: [Organizer]
+      summary: Мои хакатоны (все статусы)
+      operationId: listOrganizerHackathons
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HackathonListItem'
+        '403':
+          description: Не organizer
+    post:
+      tags: [Organizer]
+      summary: Создать хакатон (черновик)
+      operationId: createHackathon
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHackathonRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackathonDetail'
+        '403':
+          description: Не organizer
+
+  /organizer/hackathons/{hackathonId}:
+    patch:
+      tags: [Organizer]
+      summary: Редактировать хакатон
+      operationId: updateHackathon
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHackathonRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackathonDetail'
+        '403':
+          description: Не владелец
+    delete:
+      tags: [Organizer]
+      summary: Удалить хакатон
+      description: Только в статусе `draft`.
+      operationId: deleteHackathon
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '204':
+          description: Удалён
+        '400':
+          description: Нельзя удалить опубликованный
+
+  /organizer/hackathons/{hackathonId}/publish:
+    post:
+      tags: [Organizer]
+      summary: Опубликовать хакатон
+      description: Перевод `draft` → `registration`. Требуются хотя бы 1 трек и 1 кейс.
+      operationId: publishHackathon
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HackathonDetail'
+        '400':
+          description: Не заполнены обязательные поля / нет кейсов
+
+  /organizer/hackathons/{hackathonId}/tracks:
+    get:
+      tags: [Tracks]
+      summary: Список треков (organizer)
+      operationId: listTracksOrganizer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Track'
+    post:
+      tags: [Tracks]
+      summary: Создать трек
+      operationId: createTrack
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrackRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Track'
+
+  /organizer/tracks/{trackId}:
+    patch:
+      tags: [Tracks]
+      summary: Обновить трек
+      operationId: updateTrack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrackRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Track'
+    delete:
+      tags: [Tracks]
+      summary: Удалить трек
+      operationId: deleteTrack
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Удалён
+
+  /organizer/tracks/{trackId}/cases:
+    get:
+      tags: [Cases]
+      summary: Кейсы трека
+      operationId: listCases
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Case'
+    post:
+      tags: [Cases]
+      summary: Создать кейс
+      operationId: createCase
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCaseRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+
+  /organizer/cases/{caseId}:
+    patch:
+      tags: [Cases]
+      summary: Обновить кейс
+      operationId: updateCase
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCaseRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+    delete:
+      tags: [Cases]
+      summary: Удалить кейс
+      operationId: deleteCase
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Удалён
+
+  /organizer/hackathons/{hackathonId}/submissions:
+    get:
+      tags: [Organizer, Submissions]
+      summary: Все сабмиты хакатона (для организатора / «жюри»)
+      description: Просмотр артефактов без выставления оценок в MVP.
+      operationId: listHackathonSubmissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubmissionWithTeam'
+
+  /organizer/hackathons/{hackathonId}/registrations:
+    get:
+      tags: [Organizer]
+      summary: Список зарегистрированных участников
+      operationId: listHackathonRegistrations
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HackathonId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HackathonRegistrationWithUser'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    HackathonId:
+      name: hackathonId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TeamId:
+      name: teamId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Не авторизован
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Не найдено
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+
+    PlatformRole:
+      type: string
+      enum: [participant, organizer]
+      description: Роль аккаунта на платформе
+
+    TeamMemberRole:
+      type: string
+      enum:
+        - team_lead
+        - developer
+        - designer
+        - data_scientist
+        - devops_qa
+        - other
+      description: Роль участника внутри команды (не нормируется строго, для состава питча)
+
+    HackathonStatus:
+      type: string
+      enum: [draft, registration, running, finished]
+      description: |
+        - draft — черновик организатора
+        - registration — открыта запись и формирование команд
+        - running — основной этап (кодинг), приём сабмитов открыт
+        - finished — дедлайн сабмитов прошёл
+
+    RegisterRequest:
+      type: object
+      required: [email, password, full_name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        full_name:
+          type: string
+        platform_role:
+          $ref: '#/components/schemas/PlatformRole'
+          default: participant
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [access_token, user]
+      properties:
+        access_token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required: [id, email, full_name, platform_role, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        full_name:
+          type: string
+        platform_role:
+          $ref: '#/components/schemas/PlatformRole'
+        created_at:
+          type: string
+          format: date-time
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+
+    HackathonTimeline:
+      type: object
+      description: Упрощённый таймлайн этапов хакатона (даты на сервере в UTC)
+      required:
+        - registration_opens_at
+        - registration_closes_at
+        - event_starts_at
+        - event_ends_at
+        - submission_deadline_at
+      properties:
+        registration_opens_at:
+          type: string
+          format: date-time
+        registration_closes_at:
+          type: string
+          format: date-time
+        event_starts_at:
+          type: string
+          format: date-time
+          description: Старт основного этапа / брифинг
+        event_ends_at:
+          type: string
+          format: date-time
+          description: Конец кодинга
+        submission_deadline_at:
+          type: string
+          format: date-time
+          description: Крайний срок сдачи артефактов
+
+    HackathonListItem:
+      type: object
+      required: [id, title, status, registration_opens_at, submission_deadline_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        short_description:
+          type: string
+        status:
+          $ref: '#/components/schemas/HackathonStatus'
+        format:
+          type: string
+          enum: [online, offline, hybrid]
+        registration_opens_at:
+          type: string
+          format: date-time
+        submission_deadline_at:
+          type: string
+          format: date-time
+
+    HackathonDetail:
+      allOf:
+        - $ref: '#/components/schemas/HackathonListItem'
+        - type: object
+          required: [description, timeline, max_team_size, tracks]
+          properties:
+            description:
+              type: string
+            timeline:
+              $ref: '#/components/schemas/HackathonTimeline'
+            max_team_size:
+              type: integer
+              minimum: 2
+              maximum: 8
+              default: 5
+            prizes_info:
+              type: string
+              description: Текст о призах (без отдельной сущности в MVP)
+            tracks:
+              type: array
+              items:
+                $ref: '#/components/schemas/TrackWithCases'
+
+    CreateHackathonRequest:
+      type: object
+      required: [title, description, timeline, max_team_size]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        short_description:
+          type: string
+        format:
+          type: string
+          enum: [online, offline, hybrid]
+        timeline:
+          $ref: '#/components/schemas/HackathonTimeline'
+        max_team_size:
+          type: integer
+          default: 5
+        prizes_info:
+          type: string
+
+    UpdateHackathonRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        short_description:
+          type: string
+        format:
+          type: string
+        timeline:
+          $ref: '#/components/schemas/HackathonTimeline'
+        max_team_size:
+          type: integer
+        prizes_info:
+          type: string
+        status:
+          $ref: '#/components/schemas/HackathonStatus'
+          description: Ручной перевод running/finished (опционально)
+
+    Track:
+      type: object
+      required: [id, hackathon_id, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+        hackathon_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+
+    TrackWithCases:
+      allOf:
+        - $ref: '#/components/schemas/Track'
+        - type: object
+          properties:
+            cases:
+              type: array
+              items:
+                $ref: '#/components/schemas/Case'
+
+    CreateTrackRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+
+    Case:
+      type: object
+      required: [id, track_id, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+        track_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        customer_name:
+          type: string
+          description: Заказчик кейса (компания / ведомство)
+        resources_url:
+          type: string
+          format: uri
+          description: Ссылка на API, датасет (data.mos.ru и т.п.)
+
+    CreateCaseRequest:
+      type: object
+      required: [title, description]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        customer_name:
+          type: string
+        resources_url:
+          type: string
+          format: uri
+
+    HackathonRegistration:
+      type: object
+      required: [id, hackathon_id, user_id, registered_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        hackathon_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        registered_at:
+          type: string
+          format: date-time
+
+    HackathonRegistrationWithUser:
+      allOf:
+        - $ref: '#/components/schemas/HackathonRegistration'
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    ParticipationStatus:
+      type: object
+      required: [hackathon_id, is_registered, can_register, can_submit]
+      properties:
+        hackathon_id:
+          type: string
+          format: uuid
+        is_registered:
+          type: boolean
+        registration:
+          $ref: '#/components/schemas/HackathonRegistration'
+        team:
+          $ref: '#/components/schemas/Team'
+        has_submission:
+          type: boolean
+        can_register:
+          type: boolean
+        can_create_team:
+          type: boolean
+        can_submit:
+          type: boolean
+        submission_deadline_at:
+          type: string
+          format: date-time
+
+    Team:
+      type: object
+      required: [id, hackathon_id, name, captain_id, members]
+      properties:
+        id:
+          type: string
+          format: uuid
+        hackathon_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        captain_id:
+          type: string
+          format: uuid
+        track_id:
+          type: string
+          format: uuid
+          nullable: true
+        case_id:
+          type: string
+          format: uuid
+          nullable: true
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+
+    TeamMember:
+      type: object
+      required: [user_id, full_name, team_role]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        team_role:
+          $ref: '#/components/schemas/TeamMemberRole'
+
+    CreateTeamRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        track_id:
+          type: string
+          format: uuid
+        case_id:
+          type: string
+          format: uuid
+        team_role:
+          $ref: '#/components/schemas/TeamMemberRole'
+          default: team_lead
+
+    UpdateTeamRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        track_id:
+          type: string
+          format: uuid
+        case_id:
+          type: string
+          format: uuid
+
+    JoinTeamRequest:
+      type: object
+      properties:
+        team_role:
+          $ref: '#/components/schemas/TeamMemberRole'
+          default: developer
+
+    Submission:
+      type: object
+      required: [id, team_id, hackathon_id, repo_url, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        hackathon_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        summary:
+          type: string
+          description: Краткое описание решения
+        repo_url:
+          type: string
+          format: uri
+        demo_url:
+          type: string
+          format: uri
+        pitch_url:
+          type: string
+          format: uri
+          description: Презентация (PDF / Google Slides)
+        video_url:
+          type: string
+          format: uri
+        submitted_at:
+          type: string
+          format: date-time
+          description: Первичная сдача (null до первого save)
+        updated_at:
+          type: string
+          format: date-time
+
+    SubmissionWithTeam:
+      allOf:
+        - $ref: '#/components/schemas/Submission'
+        - type: object
+          properties:
+            team_name:
+              type: string
+            case_title:
+              type: string
+            track_title:
+              type: string
+
+    UpsertSubmissionRequest:
+      type: object
+      required: [repo_url]
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        repo_url:
+          type: string
+          format: uri
+        demo_url:
+          type: string
+          format: uri
+        pitch_url:
+          type: string
+          format: uri
+        video_url:
+          type: string
+          format: uri

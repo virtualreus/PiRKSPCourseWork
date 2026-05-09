@@ -1,0 +1,9 @@
+docs_coursework/
+
+.env
+.DS_Store
+
+backend/bin/
+
+frontend/node_modules/
+frontend/dist/
