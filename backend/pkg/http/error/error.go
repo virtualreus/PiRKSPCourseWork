@@ -39,3 +39,7 @@ func NotFound(w http.ResponseWriter, message string) {
 func Unauthorized(w http.ResponseWriter, message string) {
 	Write(w, http.StatusUnauthorized, "UNAUTHORIZED", message)
 }
+
+func Conflict(w http.ResponseWriter, message string) {
+	Write(w, http.StatusConflict, "CONFLICT", message)
+}

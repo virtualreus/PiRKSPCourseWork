@@ -13,15 +13,25 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/nikitatisenko/pirksp/internal/adapter/repository/postgres_repo"
+	"github.com/nikitatisenko/pirksp/internal/domain/ports/repository"
+	"github.com/nikitatisenko/pirksp/internal/infrastructure/auth"
 	"github.com/nikitatisenko/pirksp/internal/infrastructure/database/postgres"
+	"github.com/nikitatisenko/pirksp/internal/usecase"
+	"github.com/nikitatisenko/pirksp/internal/usecase/auth_usecase"
 	"github.com/nikitatisenko/pirksp/pkg/logger"
 )
 
 type Server struct {
 	logger   *slog.Logger
 	database *postgres.Postgres
-	router   *chi.Mux
-	server   *http.Server
+	tokens   *auth.TokenService
+
+	usersRepository repository.UsersRepository
+	authUseCase     usecase.AuthUseCase
+
+	router *chi.Mux
+	server *http.Server
 }
 
 func NewServer() (*Server, error) {
@@ -44,6 +54,12 @@ func (s *Server) init() error {
 		return fmt.Errorf("migrate database: %w", err)
 	}
 
+	if err := s.initAuth(); err != nil {
+		return fmt.Errorf("init auth: %w", err)
+	}
+
+	s.initRepo()
+	s.initUseCases()
 	s.initRoutes()
 	s.initHTTPServer()
 
@@ -64,6 +80,23 @@ func (s *Server) initDB() error {
 	s.database = pg
 	s.logger.Info("storage: postgres")
 	return nil
+}
+
+func (s *Server) initAuth() error {
+	tokens, err := auth.NewTokenService()
+	if err != nil {
+		return err
+	}
+	s.tokens = tokens
+	return nil
+}
+
+func (s *Server) initRepo() {
+	s.usersRepository = postgres_repo.NewUsersRepository(s.database)
+}
+
+func (s *Server) initUseCases() {
+	s.authUseCase = auth_usecase.NewAuthUseCase(s.usersRepository, s.tokens)
 }
 
 func (s *Server) initHTTPServer() {
