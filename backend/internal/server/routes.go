@@ -14,6 +14,7 @@ import (
 
 func (s *Server) initRoutes() {
 	s.router.Use(middleware.Recoverer)
+	s.router.Use(pkgmiddleware.CORS)
 
 	s.router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
