@@ -35,7 +35,7 @@ export function LoginPage() {
 
   return (
     <div className="auth-page">
-      <form className="card form-card" onSubmit={handleSubmit}>
+      <form className="card glass form-card" onSubmit={handleSubmit}>
         <h1>Вход</h1>
         <p className="form-hint">Аккаунт платформы хакатонов</p>
 

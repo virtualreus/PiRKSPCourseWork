@@ -15,4 +15,8 @@ var (
 	ErrEmptyEmail    = errors.New("email is required")
 	ErrEmptyName     = errors.New("full name is required")
 	ErrInvalidToken  = errors.New("invalid token")
+	ErrForbidden     = errors.New("forbidden")
+	ErrNotOwner      = errors.New("not owner of hackathon")
+	ErrCannotDelete  = errors.New("cannot delete published hackathon")
+	ErrPublishNotReady = errors.New("at least one track with a case is required")
 )

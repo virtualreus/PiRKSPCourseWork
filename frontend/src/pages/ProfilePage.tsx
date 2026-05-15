@@ -43,7 +43,7 @@ export function ProfilePage() {
 
   return (
     <div className="profile-page">
-      <div className="card form-card">
+      <div className="card glass form-card">
         <h1>Профиль</h1>
 
         <dl className="profile-meta">

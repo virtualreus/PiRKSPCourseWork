@@ -41,7 +41,7 @@ export function RegisterPage() {
 
   return (
     <div className="auth-page">
-      <form className="card form-card" onSubmit={handleSubmit}>
+      <form className="card glass form-card" onSubmit={handleSubmit}>
         <h1>Регистрация</h1>
         <p className="form-hint">Участник или организатор хакатонов</p>
 

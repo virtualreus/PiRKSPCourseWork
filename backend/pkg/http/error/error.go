@@ -43,3 +43,7 @@ func Unauthorized(w http.ResponseWriter, message string) {
 func Conflict(w http.ResponseWriter, message string) {
 	Write(w, http.StatusConflict, "CONFLICT", message)
 }
+
+func Forbidden(w http.ResponseWriter, message string) {
+	Write(w, http.StatusForbidden, "FORBIDDEN", message)
+}
