@@ -5,7 +5,7 @@ info:
     REST API веб-платформы для проведения хакатонов.
     Курсовой проект: клиент-серверное приложение (Go + React + PostgreSQL).
 
-    **Домен:** хакатон — соревнование команд за ограниченное время; результат — прототип + демо + питч.
+    **Домен:** хакатон - соревнование команд за ограниченное время; результат - прототип + демо + питч.
     Платформа покрывает: публикацию события, треки/кейсы, регистрацию, команды с ролями, сдачу артефактов до дедлайна.
 
     Полная спецификация страниц и use-case: `docs_coursework/TECHNICAL_IMPLEMENTATION.md`
@@ -50,17 +50,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
-        '201':
+        "201":
           description: Аккаунт создан, возвращён JWT
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: Email уже занят
 
   /auth/login:
@@ -73,16 +73,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
+        "200":
           description: Успешный вход
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /users/me:
     get:
@@ -92,13 +92,13 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     patch:
       tags: [Users]
       summary: Обновить профиль
@@ -109,22 +109,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProfileRequest'
+              $ref: "#/components/schemas/UpdateProfileRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /hackathons:
     get:
       tags: [Hackathons]
       summary: Список опубликованных хакатонов
       description: |
-        Публичный каталог. По умолчанию — события в статусах `registration`, `running`, `finished`.
+        Публичный каталог. По умолчанию - события в статусах `registration`, `running`, `finished`.
         Черновики (`draft`) видны только организатору через `/organizer/hackathons`.
       operationId: listHackathons
       parameters:
@@ -133,7 +133,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/HackathonStatus'
+              $ref: "#/components/schemas/HackathonStatus"
           style: form
           explode: true
         - name: q
@@ -142,7 +142,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -151,7 +151,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/HackathonListItem'
+                      $ref: "#/components/schemas/HackathonListItem"
 
   /hackathons/{hackathonId}:
     get:
@@ -160,15 +160,15 @@ paths:
       description: Описание, таймлайн, треки с кейсами. Публично для не-draft.
       operationId: getHackathon
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HackathonDetail'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/HackathonDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /hackathons/{hackathonId}/participation:
     get:
@@ -180,17 +180,17 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ParticipationStatus'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/ParticipationStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /hackathons/{hackathonId}/register:
     post:
@@ -203,48 +203,48 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HackathonRegistration'
-        '400':
+                $ref: "#/components/schemas/HackathonRegistration"
+        "400":
           description: Регистрация закрыта или уже зарегистрирован
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
           description: Только роль participant (organizer не регистрируется как участник)
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags: [Participation]
       summary: Отменить регистрацию на хакатон
-      description: Нельзя, если пользователь уже в команде с сабмитом (упрощённо — нельзя в команде).
+      description: Нельзя, если пользователь уже в команде с сабмитом (упрощённо - нельзя в команде).
       operationId: unregisterFromHackathon
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '204':
+        "204":
           description: Регистрация отменена
-        '400':
+        "400":
           description: Нельзя отменить (уже в команде)
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /hackathons/{hackathonId}/teams:
     get:
       tags: [Teams]
       summary: Список команд хакатона
-      description: Публичный список названий команд (без PII участников) или с составом — на усмотрение MVP (здесь — с составом для прозрачности).
+      description: Публичный список названий команд (без PII участников) или с составом - на усмотрение MVP (здесь - с составом для прозрачности).
       operationId: listTeams
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -253,9 +253,9 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Team'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                      $ref: "#/components/schemas/Team"
+        "404":
+          $ref: "#/components/responses/NotFound"
     post:
       tags: [Teams]
       summary: Создать команду
@@ -266,23 +266,23 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTeamRequest'
+              $ref: "#/components/schemas/CreateTeamRequest"
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Team'
-        '400':
+                $ref: "#/components/schemas/Team"
+        "400":
           description: Уже в команде / лимит команд / регистрация закрыта
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /teams/{teamId}:
     get:
@@ -290,15 +290,15 @@ paths:
       summary: Карточка команды
       operationId: getTeam
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+        - $ref: "#/components/parameters/TeamId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Team'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Team"
+        "404":
+          $ref: "#/components/responses/NotFound"
     patch:
       tags: [Teams]
       summary: Обновить команду (капитан)
@@ -307,22 +307,22 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+        - $ref: "#/components/parameters/TeamId"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateTeamRequest'
+              $ref: "#/components/schemas/UpdateTeamRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Team'
-        '403':
+                $ref: "#/components/schemas/Team"
+        "403":
           description: Не капитан
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /teams/{teamId}/join:
     post:
@@ -335,37 +335,37 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+        - $ref: "#/components/parameters/TeamId"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/JoinTeamRequest'
+              $ref: "#/components/schemas/JoinTeamRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Team'
-        '400':
+                $ref: "#/components/schemas/Team"
+        "400":
           description: Команда полна / уже в другой команде
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /teams/{teamId}/leave:
     post:
       tags: [Teams]
       summary: Покинуть команду
-      description: Капитан не может выйти, не передав капитанство (MVP — запрет выхода капитана).
+      description: Капитан не может выйти, не передав капитанство (MVP - запрет выхода капитана).
       operationId: leaveTeam
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+        - $ref: "#/components/parameters/TeamId"
       responses:
-        '204':
+        "204":
           description: Вышел из команды
-        '400':
+        "400":
           description: Капитан не может выйти без расформирования
 
   /teams/{teamId}/members/{userId}:
@@ -377,7 +377,7 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+        - $ref: "#/components/parameters/TeamId"
         - name: userId
           in: path
           required: true
@@ -393,14 +393,14 @@ paths:
               required: [team_role]
               properties:
                 team_role:
-                  $ref: '#/components/schemas/TeamMemberRole'
+                  $ref: "#/components/schemas/TeamMemberRole"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TeamMember'
-        '403':
+                $ref: "#/components/schemas/TeamMember"
+        "403":
           description: Нет прав
 
   /teams/{teamId}/submission:
@@ -411,14 +411,14 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+        - $ref: "#/components/parameters/TeamId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
-        '404':
+                $ref: "#/components/schemas/Submission"
+        "404":
           description: Сабмит ещё не создан
     put:
       tags: [Submissions]
@@ -430,22 +430,22 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/TeamId'
+        - $ref: "#/components/parameters/TeamId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpsertSubmissionRequest'
+              $ref: "#/components/schemas/UpsertSubmissionRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
-        '400':
+                $ref: "#/components/schemas/Submission"
+        "400":
           description: Дедлайн прошёл / не выбран кейс
-        '403':
+        "403":
           description: Не член команды
 
   /organizer/hackathons:
@@ -456,7 +456,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -465,8 +465,8 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/HackathonListItem'
-        '403':
+                      $ref: "#/components/schemas/HackathonListItem"
+        "403":
           description: Не organizer
     post:
       tags: [Organizer]
@@ -479,14 +479,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateHackathonRequest'
+              $ref: "#/components/schemas/CreateHackathonRequest"
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HackathonDetail'
-        '403':
+                $ref: "#/components/schemas/HackathonDetail"
+        "403":
           description: Не organizer
 
   /organizer/hackathons/{hackathonId}:
@@ -497,19 +497,19 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateHackathonRequest'
+              $ref: "#/components/schemas/UpdateHackathonRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HackathonDetail'
-        '403':
+                $ref: "#/components/schemas/HackathonDetail"
+        "403":
           description: Не владелец
     delete:
       tags: [Organizer]
@@ -519,11 +519,11 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '204':
+        "204":
           description: Удалён
-        '400':
+        "400":
           description: Нельзя удалить опубликованный
 
   /organizer/hackathons/{hackathonId}/publish:
@@ -535,14 +535,14 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HackathonDetail'
-        '400':
+                $ref: "#/components/schemas/HackathonDetail"
+        "400":
           description: Не заполнены обязательные поля / нет кейсов
 
   /organizer/hackathons/{hackathonId}/tracks:
@@ -553,9 +553,9 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -564,7 +564,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Track'
+                      $ref: "#/components/schemas/Track"
     post:
       tags: [Tracks]
       summary: Создать трек
@@ -572,19 +572,19 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTrackRequest'
+              $ref: "#/components/schemas/CreateTrackRequest"
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Track'
+                $ref: "#/components/schemas/Track"
 
   /organizer/tracks/{trackId}:
     patch:
@@ -604,13 +604,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTrackRequest'
+              $ref: "#/components/schemas/CreateTrackRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Track'
+                $ref: "#/components/schemas/Track"
     delete:
       tags: [Tracks]
       summary: Удалить трек
@@ -625,7 +625,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Удалён
 
   /organizer/tracks/{trackId}/cases:
@@ -643,7 +643,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -652,7 +652,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Case'
+                      $ref: "#/components/schemas/Case"
     post:
       tags: [Cases]
       summary: Создать кейс
@@ -671,13 +671,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCaseRequest'
+              $ref: "#/components/schemas/CreateCaseRequest"
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Case'
+                $ref: "#/components/schemas/Case"
 
   /organizer/cases/{caseId}:
     patch:
@@ -697,13 +697,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCaseRequest'
+              $ref: "#/components/schemas/CreateCaseRequest"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Case'
+                $ref: "#/components/schemas/Case"
     delete:
       tags: [Cases]
       summary: Удалить кейс
@@ -718,7 +718,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Удалён
 
   /organizer/hackathons/{hackathonId}/submissions:
@@ -730,9 +730,9 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -741,7 +741,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SubmissionWithTeam'
+                      $ref: "#/components/schemas/SubmissionWithTeam"
 
   /organizer/hackathons/{hackathonId}/registrations:
     get:
@@ -751,9 +751,9 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/HackathonId'
+        - $ref: "#/components/parameters/HackathonId"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
@@ -762,7 +762,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/HackathonRegistrationWithUser'
+                      $ref: "#/components/schemas/HackathonRegistrationWithUser"
 
 components:
   securitySchemes:
@@ -793,19 +793,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     Unauthorized:
       description: Не авторизован
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     NotFound:
       description: Не найдено
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
     ErrorResponse:
@@ -842,10 +842,10 @@ components:
       type: string
       enum: [draft, registration, running, finished]
       description: |
-        - draft — черновик организатора
-        - registration — открыта запись и формирование команд
-        - running — основной этап (кодинг), приём сабмитов открыт
-        - finished — дедлайн сабмитов прошёл
+        - draft - черновик организатора
+        - registration - открыта запись и формирование команд
+        - running - основной этап (кодинг), приём сабмитов открыт
+        - finished - дедлайн сабмитов прошёл
 
     RegisterRequest:
       type: object
@@ -860,7 +860,7 @@ components:
         full_name:
           type: string
         platform_role:
-          $ref: '#/components/schemas/PlatformRole'
+          $ref: "#/components/schemas/PlatformRole"
           default: participant
 
     LoginRequest:
@@ -880,7 +880,7 @@ components:
         access_token:
           type: string
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
 
     User:
       type: object
@@ -894,7 +894,7 @@ components:
         full_name:
           type: string
         platform_role:
-          $ref: '#/components/schemas/PlatformRole'
+          $ref: "#/components/schemas/PlatformRole"
         created_at:
           type: string
           format: date-time
@@ -936,7 +936,8 @@ components:
 
     HackathonListItem:
       type: object
-      required: [id, title, status, registration_opens_at, submission_deadline_at]
+      required:
+        [id, title, status, registration_opens_at, submission_deadline_at]
       properties:
         id:
           type: string
@@ -946,7 +947,7 @@ components:
         short_description:
           type: string
         status:
-          $ref: '#/components/schemas/HackathonStatus'
+          $ref: "#/components/schemas/HackathonStatus"
         format:
           type: string
           enum: [online, offline, hybrid]
@@ -959,14 +960,14 @@ components:
 
     HackathonDetail:
       allOf:
-        - $ref: '#/components/schemas/HackathonListItem'
+        - $ref: "#/components/schemas/HackathonListItem"
         - type: object
           required: [description, timeline, max_team_size, tracks]
           properties:
             description:
               type: string
             timeline:
-              $ref: '#/components/schemas/HackathonTimeline'
+              $ref: "#/components/schemas/HackathonTimeline"
             max_team_size:
               type: integer
               minimum: 2
@@ -978,7 +979,7 @@ components:
             tracks:
               type: array
               items:
-                $ref: '#/components/schemas/TrackWithCases'
+                $ref: "#/components/schemas/TrackWithCases"
 
     CreateHackathonRequest:
       type: object
@@ -994,7 +995,7 @@ components:
           type: string
           enum: [online, offline, hybrid]
         timeline:
-          $ref: '#/components/schemas/HackathonTimeline'
+          $ref: "#/components/schemas/HackathonTimeline"
         max_team_size:
           type: integer
           default: 5
@@ -1013,13 +1014,13 @@ components:
         format:
           type: string
         timeline:
-          $ref: '#/components/schemas/HackathonTimeline'
+          $ref: "#/components/schemas/HackathonTimeline"
         max_team_size:
           type: integer
         prizes_info:
           type: string
         status:
-          $ref: '#/components/schemas/HackathonStatus'
+          $ref: "#/components/schemas/HackathonStatus"
           description: Ручной перевод running/finished (опционально)
 
     Track:
@@ -1039,13 +1040,13 @@ components:
 
     TrackWithCases:
       allOf:
-        - $ref: '#/components/schemas/Track'
+        - $ref: "#/components/schemas/Track"
         - type: object
           properties:
             cases:
               type: array
               items:
-                $ref: '#/components/schemas/Case'
+                $ref: "#/components/schemas/Case"
 
     CreateTrackRequest:
       type: object
@@ -1111,11 +1112,11 @@ components:
 
     HackathonRegistrationWithUser:
       allOf:
-        - $ref: '#/components/schemas/HackathonRegistration'
+        - $ref: "#/components/schemas/HackathonRegistration"
         - type: object
           properties:
             user:
-              $ref: '#/components/schemas/User'
+              $ref: "#/components/schemas/User"
 
     ParticipationStatus:
       type: object
@@ -1127,9 +1128,9 @@ components:
         is_registered:
           type: boolean
         registration:
-          $ref: '#/components/schemas/HackathonRegistration'
+          $ref: "#/components/schemas/HackathonRegistration"
         team:
-          $ref: '#/components/schemas/Team'
+          $ref: "#/components/schemas/Team"
         has_submission:
           type: boolean
         can_register:
@@ -1168,7 +1169,7 @@ components:
         members:
           type: array
           items:
-            $ref: '#/components/schemas/TeamMember'
+            $ref: "#/components/schemas/TeamMember"
 
     TeamMember:
       type: object
@@ -1180,7 +1181,7 @@ components:
         full_name:
           type: string
         team_role:
-          $ref: '#/components/schemas/TeamMemberRole'
+          $ref: "#/components/schemas/TeamMemberRole"
 
     CreateTeamRequest:
       type: object
@@ -1195,7 +1196,7 @@ components:
           type: string
           format: uuid
         team_role:
-          $ref: '#/components/schemas/TeamMemberRole'
+          $ref: "#/components/schemas/TeamMemberRole"
           default: team_lead
 
     UpdateTeamRequest:
@@ -1214,7 +1215,7 @@ components:
       type: object
       properties:
         team_role:
-          $ref: '#/components/schemas/TeamMemberRole'
+          $ref: "#/components/schemas/TeamMemberRole"
           default: developer
 
     Submission:
@@ -1258,7 +1259,7 @@ components:
 
     SubmissionWithTeam:
       allOf:
-        - $ref: '#/components/schemas/Submission'
+        - $ref: "#/components/schemas/Submission"
         - type: object
           properties:
             team_name:

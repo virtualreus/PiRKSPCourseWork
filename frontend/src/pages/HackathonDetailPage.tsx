@@ -51,7 +51,10 @@ export function HackathonDetailPage() {
     );
   }
 
-  const isOwner = user?.platform_role === "organizer";
+  const isOrganizer = user?.platform_role === "organizer";
+  const canParticipate =
+    user?.platform_role === "participant" &&
+    (item.status === "registration" || item.status === "running");
 
   return (
     <article className="hackathon-detail">
@@ -126,11 +129,20 @@ export function HackathonDetailPage() {
 
       <div className="detail-actions">
         {!user && (
-          <Link to="/login" className="btn-primary">
+          <Link
+            to="/login"
+            state={{ from: `/hackathons/${item.id}/participate` }}
+            className="btn-primary"
+          >
             Войти, чтобы участвовать
           </Link>
         )}
-        {isOwner && (
+        {canParticipate && (
+          <Link to={`/hackathons/${item.id}/participate`} className="btn-primary">
+            Участвовать
+          </Link>
+        )}
+        {isOrganizer && (
           <Link
             to={`/organizer/hackathons/${item.id}`}
             className="btn-secondary"

@@ -3,6 +3,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import * as hackathonsApi from "../../api/hackathons";
 import type { HackathonDetail } from "../../api/hackathonTypes";
+import * as participationApi from "../../api/participation";
+import type {
+  HackathonRegistrationWithUser,
+  SubmissionWithTeam,
+} from "../../api/participationTypes";
 import { ApiError } from "../../api/client";
 import { formatDate, statusLabel } from "../../utils/hackathon";
 
@@ -19,6 +24,8 @@ export function OrganizerHackathonEditPage() {
   const [selectedTrackId, setSelectedTrackId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [registrations, setRegistrations] = useState<HackathonRegistrationWithUser[]>([]);
+  const [submissions, setSubmissions] = useState<SubmissionWithTeam[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -30,6 +37,17 @@ export function OrganizerHackathonEditPage() {
     setItem(data);
     if (!selectedTrackId && data.tracks.length > 0) {
       setSelectedTrackId(data.tracks[0].id);
+    }
+    if (data.status !== "draft") {
+      const [regs, subs] = await Promise.all([
+        participationApi.listOrganizerRegistrations(id),
+        participationApi.listOrganizerSubmissions(id),
+      ]);
+      setRegistrations(regs.items);
+      setSubmissions(subs.items);
+    } else {
+      setRegistrations([]);
+      setSubmissions([]);
     }
   }
 
@@ -288,6 +306,53 @@ export function OrganizerHackathonEditPage() {
             </button>
           </form>
         </section>
+      )}
+
+      {!isDraft && (
+        <>
+          <section className="card glass detail-block">
+            <h2>Участники ({registrations.length})</h2>
+            {registrations.length === 0 ? (
+              <p className="muted">Пока никто не зарегистрировался.</p>
+            ) : (
+              <ul className="organizer-list">
+                {registrations.map((r) => (
+                  <li key={r.id}>
+                    <strong>{r.user.full_name}</strong>
+                    <span>{r.user.email}</span>
+                    <time>{formatDate(r.registered_at)}</time>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="card glass detail-block">
+            <h2>Сдачи ({submissions.length})</h2>
+            {submissions.length === 0 ? (
+              <p className="muted">Сдач пока нет.</p>
+            ) : (
+              <ul className="organizer-submissions">
+                {submissions.map((s) => (
+                  <li key={s.id} className="submission-row">
+                    <div>
+                      <strong>{s.team_name}</strong>
+                      {s.title && <span> — {s.title}</span>}
+                      {(s.track_title || s.case_title) && (
+                        <p className="muted">
+                          {[s.track_title, s.case_title].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                    </div>
+                    <a href={s.repo_url} target="_blank" rel="noreferrer">
+                      Репозиторий
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
       )}
 
       <section className="card glass detail-block muted-block">

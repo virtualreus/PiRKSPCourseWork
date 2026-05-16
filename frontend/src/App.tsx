@@ -7,6 +7,9 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { HackathonDetailPage } from './pages/HackathonDetailPage';
 import { HomePage } from './pages/HomePage';
+import { ParticipatePage } from './pages/ParticipatePage';
+import { SubmissionPage } from './pages/SubmissionPage';
+import { TeamPage } from './pages/TeamPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -22,6 +25,30 @@ export default function App() {
           <Route element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="hackathons/:id" element={<HackathonDetailPage />} />
+            <Route
+              path="hackathons/:id/participate"
+              element={
+                <ProtectedRoute>
+                  <ParticipatePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="hackathons/:id/team"
+              element={
+                <ProtectedRoute>
+                  <TeamPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="hackathons/:id/submission"
+              element={
+                <ProtectedRoute>
+                  <SubmissionPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="login"
               element={

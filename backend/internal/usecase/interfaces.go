@@ -33,3 +33,21 @@ type HackathonUseCase interface {
 	UpdateCase(ctx context.Context, organizerID, caseID uuid.UUID, req dto.CreateCaseRequest) (*dto.Case, error)
 	DeleteCase(ctx context.Context, organizerID, caseID uuid.UUID) error
 }
+
+type ParticipationUseCase interface {
+	GetParticipation(ctx context.Context, userID, hackathonID uuid.UUID) (*dto.ParticipationStatus, error)
+	RegisterForHackathon(ctx context.Context, userID, hackathonID uuid.UUID) (*dto.HackathonRegistration, error)
+	UnregisterFromHackathon(ctx context.Context, userID, hackathonID uuid.UUID) error
+	ListTeams(ctx context.Context, hackathonID uuid.UUID) ([]dto.Team, error)
+	CreateTeam(ctx context.Context, userID, hackathonID uuid.UUID, req dto.CreateTeamRequest) (*dto.Team, error)
+	GetTeam(ctx context.Context, teamID uuid.UUID) (*dto.Team, error)
+	UpdateTeam(ctx context.Context, userID, teamID uuid.UUID, req dto.UpdateTeamRequest) (*dto.Team, error)
+	JoinTeam(ctx context.Context, userID, teamID uuid.UUID, req dto.JoinTeamRequest) (*dto.Team, error)
+	LeaveTeam(ctx context.Context, userID, teamID uuid.UUID) error
+	UpdateTeamMemberRole(ctx context.Context, actorID, teamID, memberID uuid.UUID, req dto.UpdateTeamMemberRoleRequest) (*dto.TeamMember, error)
+	GetTeamSubmission(ctx context.Context, userID, teamID uuid.UUID) (*dto.Submission, error)
+	UpsertTeamSubmission(ctx context.Context, userID, teamID uuid.UUID, req dto.UpsertSubmissionRequest) (*dto.Submission, error)
+	ListHackathonRegistrations(ctx context.Context, organizerID, hackathonID uuid.UUID) ([]dto.HackathonRegistrationWithUser, error)
+	ListHackathonSubmissions(ctx context.Context, organizerID, hackathonID uuid.UUID) ([]dto.SubmissionWithTeam, error)
+	GetUserDashboard(ctx context.Context, userID uuid.UUID) (*dto.UserDashboard, error)
+}

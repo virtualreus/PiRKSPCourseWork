@@ -21,6 +21,7 @@ import (
 	"github.com/nikitatisenko/pirksp/internal/usecase"
 	"github.com/nikitatisenko/pirksp/internal/usecase/auth_usecase"
 	"github.com/nikitatisenko/pirksp/internal/usecase/hackathon_usecase"
+	"github.com/nikitatisenko/pirksp/internal/usecase/participation_usecase"
 	"github.com/nikitatisenko/pirksp/pkg/logger"
 )
 
@@ -30,9 +31,11 @@ type Server struct {
 	tokens   *auth.TokenService
 
 	usersRepository     repository.UsersRepository
-	hackathonsRepository repository.HackathonsRepository
-	authUseCase         usecase.AuthUseCase
-	hackathonUseCase    usecase.HackathonUseCase
+	hackathonsRepository     repository.HackathonsRepository
+	participationRepository  repository.ParticipationRepository
+	authUseCase              usecase.AuthUseCase
+	hackathonUseCase         usecase.HackathonUseCase
+	participationUseCase     usecase.ParticipationUseCase
 
 	router *chi.Mux
 	server *http.Server
@@ -99,11 +102,17 @@ func (s *Server) initAuth() error {
 func (s *Server) initRepo() {
 	s.usersRepository = postgres_repo.NewUsersRepository(s.database)
 	s.hackathonsRepository = postgres_repo.NewHackathonsRepository(s.database)
+	s.participationRepository = postgres_repo.NewParticipationRepository(s.database)
 }
 
 func (s *Server) initUseCases() {
 	s.authUseCase = auth_usecase.NewAuthUseCase(s.usersRepository, s.tokens)
 	s.hackathonUseCase = hackathon_usecase.NewHackathonUseCase(s.hackathonsRepository)
+	s.participationUseCase = participation_usecase.NewParticipationUseCase(
+		s.hackathonsRepository,
+		s.participationRepository,
+		s.usersRepository,
+	)
 }
 
 func (s *Server) initHTTPServer() {

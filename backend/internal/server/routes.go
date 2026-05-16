@@ -10,6 +10,7 @@ import (
 	hackathonshttp "github.com/nikitatisenko/pirksp/internal/delivery/http/hackathons"
 	"github.com/nikitatisenko/pirksp/internal/delivery/http/health"
 	organizerhttp "github.com/nikitatisenko/pirksp/internal/delivery/http/organizer"
+	participationhttp "github.com/nikitatisenko/pirksp/internal/delivery/http/participation"
 	usershttp "github.com/nikitatisenko/pirksp/internal/delivery/http/users"
 	pkgmiddleware "github.com/nikitatisenko/pirksp/pkg/middleware"
 )
@@ -35,10 +36,30 @@ func (s *Server) initRoutes() {
 		r.Get("/hackathons", hackathonshttp.List(s.hackathonUseCase))
 		r.Get("/hackathons/{hackathonId}", hackathonshttp.Get(s.hackathonUseCase))
 
+		r.Get("/hackathons/{hackathonId}/teams", participationhttp.ListTeams(s.participationUseCase))
+		r.Get("/teams/{teamId}", participationhttp.GetTeam(s.participationUseCase))
+
 		r.Route("/users", func(r chi.Router) {
 			r.Use(pkgmiddleware.AuthRequired(s.tokens))
 			r.Get("/me", usershttp.GetMe(s.authUseCase))
+			r.Get("/me/dashboard", usershttp.GetDashboard(s.participationUseCase))
 			r.Patch("/me", usershttp.UpdateMe(s.authUseCase))
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(pkgmiddleware.AuthRequired(s.tokens))
+
+			r.Get("/hackathons/{hackathonId}/participation", participationhttp.GetParticipation(s.participationUseCase))
+			r.Post("/hackathons/{hackathonId}/register", participationhttp.Register(s.participationUseCase))
+			r.Delete("/hackathons/{hackathonId}/register", participationhttp.Unregister(s.participationUseCase))
+			r.Post("/hackathons/{hackathonId}/teams", participationhttp.CreateTeam(s.participationUseCase))
+
+			r.Patch("/teams/{teamId}", participationhttp.UpdateTeam(s.participationUseCase))
+			r.Post("/teams/{teamId}/join", participationhttp.JoinTeam(s.participationUseCase))
+			r.Post("/teams/{teamId}/leave", participationhttp.LeaveTeam(s.participationUseCase))
+			r.Patch("/teams/{teamId}/members/{userId}", participationhttp.UpdateMemberRole(s.participationUseCase))
+			r.Get("/teams/{teamId}/submission", participationhttp.GetSubmission(s.participationUseCase))
+			r.Put("/teams/{teamId}/submission", participationhttp.UpsertSubmission(s.participationUseCase))
 		})
 
 		r.Route("/organizer", func(r chi.Router) {
@@ -61,6 +82,9 @@ func (s *Server) initRoutes() {
 			r.Post("/tracks/{trackId}/cases", organizerhttp.CreateCase(s.hackathonUseCase))
 			r.Patch("/cases/{caseId}", organizerhttp.UpdateCase(s.hackathonUseCase))
 			r.Delete("/cases/{caseId}", organizerhttp.DeleteCase(s.hackathonUseCase))
+
+			r.Get("/hackathons/{hackathonId}/registrations", participationhttp.ListRegistrations(s.participationUseCase))
+			r.Get("/hackathons/{hackathonId}/submissions", participationhttp.ListSubmissions(s.participationUseCase))
 		})
 	})
 }
