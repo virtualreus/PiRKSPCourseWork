@@ -67,7 +67,14 @@ func (s *Server) init() error {
 
 	s.initRepo()
 	s.initUseCases()
-	seed.Run(context.Background(), s.usersRepository, s.hackathonUseCase, s.logger)
+	seed.Run(
+		context.Background(),
+		s.usersRepository,
+		s.hackathonsRepository,
+		s.hackathonUseCase,
+		s.participationRepository,
+		s.logger,
+	)
 	s.initRoutes()
 	s.initHTTPServer()
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import * as hackathonsApi from "../../api/hackathons";
@@ -9,19 +9,14 @@ import type {
   SubmissionWithTeam,
 } from "../../api/participationTypes";
 import { ApiError } from "../../api/client";
+import { TrackCaseManager } from "../../components/organizer/TrackCaseManager";
+import { Reveal } from "../../components/Reveal";
 import { formatDate, statusLabel } from "../../utils/hackathon";
 
 export function OrganizerHackathonEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [item, setItem] = useState<HackathonDetail | null>(null);
-  const [trackTitle, setTrackTitle] = useState("");
-  const [trackDescription, setTrackDescription] = useState("");
-  const [caseTitle, setCaseTitle] = useState("");
-  const [caseDescription, setCaseDescription] = useState("");
-  const [caseCustomer, setCaseCustomer] = useState("");
-  const [caseResources, setCaseResources] = useState("");
-  const [selectedTrackId, setSelectedTrackId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [registrations, setRegistrations] = useState<HackathonRegistrationWithUser[]>([]);
@@ -35,9 +30,6 @@ export function OrganizerHackathonEditPage() {
     }
     const data = await hackathonsApi.getOrganizerHackathon(id);
     setItem(data);
-    if (!selectedTrackId && data.tracks.length > 0) {
-      setSelectedTrackId(data.tracks[0].id);
-    }
     if (data.status !== "draft") {
       const [regs, subs] = await Promise.all([
         participationApi.listOrganizerRegistrations(id),
@@ -109,79 +101,40 @@ export function OrganizerHackathonEditPage() {
     }
   }
 
-  async function handleAddTrack(e: FormEvent) {
-    e.preventDefault();
-    if (!id) {
-      return;
-    }
-    setBusy(true);
-    setError("");
-    try {
-      await hackathonsApi.createTrack(id, {
-        title: trackTitle,
-        description: trackDescription,
-      });
-      setTrackTitle("");
-      setTrackDescription("");
-      await reload();
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleAddCase(e: FormEvent) {
-    e.preventDefault();
-    if (!selectedTrackId) {
-      return;
-    }
-    setBusy(true);
-    setError("");
-    try {
-      await hackathonsApi.createCase(selectedTrackId, {
-        title: caseTitle,
-        description: caseDescription,
-        customer_name: caseCustomer,
-        resources_url: caseResources,
-      });
-      setCaseTitle("");
-      setCaseDescription("");
-      setCaseCustomer("");
-      setCaseResources("");
-      await reload();
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
-
   if (loading) {
-    return <p className="page-loading">Загрузка…</p>;
+    return (
+      <div className="page-loading organizer-page" aria-busy>
+        <div className="spinner" />
+      </div>
+    );
   }
 
   if (!item) {
-    return <p className="form-error">{error || "Не найдено"}</p>;
+    return (
+      <div className="card glass form-card organizer-page">
+        <p className="form-error">{error || "Не найдено"}</p>
+        <Link to="/organizer/hackathons">К списку</Link>
+      </div>
+    );
   }
 
   const isDraft = item.status === "draft";
+  const canPublish =
+    isDraft && item.tracks.length > 0 && item.tracks.some((t) => (t.cases?.length ?? 0) > 0);
 
   return (
-    <section className="organizer-page">
-      <div className="page-toolbar">
-        <h1>{item.title}</h1>
-        <span className={`status-badge status-${item.status}`}>
-          {statusLabel(item.status)}
-        </span>
-      </div>
+    <section className="organizer-page organizer-page-wide">
+      <Reveal>
+        <div className="page-toolbar">
+          <h1>{item.title}</h1>
+          <span className={`status-badge status-${item.status}`}>
+            {statusLabel(item.status)}
+          </span>
+        </div>
+      </Reveal>
 
-      {message && <p className="form-success">{message}</p>}
-      {error && <p className="form-error">{error}</p>}
+      {message && <p className="form-success participate-banner">{message}</p>}
+      {error && <p className="form-error participate-banner">{error}</p>}
 
       <div className="detail-actions">
         {isDraft && (
@@ -189,7 +142,12 @@ export function OrganizerHackathonEditPage() {
             <button
               type="button"
               className="btn-primary"
-              disabled={busy}
+              disabled={busy || !canPublish}
+              title={
+                canPublish
+                  ? undefined
+                  : "Добавьте хотя бы один трек с кейсом"
+              }
               onClick={handlePublish}
             >
               Опубликовать
@@ -212,157 +170,124 @@ export function OrganizerHackathonEditPage() {
         </Link>
       </div>
 
-      <section className="card glass detail-block">
-        <h2>Треки ({item.tracks.length})</h2>
-        {item.tracks.map((track) => (
-          <div key={track.id} className="track-block">
-            <h3>{track.title}</h3>
-            {track.description && <p>{track.description}</p>}
-            <ul className="case-list">
-              {(track.cases ?? []).map((c) => (
-                <li key={c.id}>
-                  <strong>{c.title}</strong> - {c.description}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-
-        {isDraft && (
-          <form className="inline-form" onSubmit={handleAddTrack}>
-            <h3>Добавить трек</h3>
-            <label>
-              Название
-              <input
-                required
-                value={trackTitle}
-                onChange={(e) => setTrackTitle(e.target.value)}
-              />
-            </label>
-            <label>
-              Описание
-              <input
-                value={trackDescription}
-                onChange={(e) => setTrackDescription(e.target.value)}
-              />
-            </label>
-            <button type="submit" className="btn-secondary" disabled={busy}>
-              Добавить трек
-            </button>
-          </form>
-        )}
-      </section>
-
-      {isDraft && item.tracks.length > 0 && (
+      <Reveal delay={80}>
         <section className="card glass detail-block">
-          <form className="inline-form" onSubmit={handleAddCase}>
-            <h2>Добавить кейс</h2>
-            <label>
-              Трек
-              <select
-                value={selectedTrackId}
-                onChange={(e) => setSelectedTrackId(e.target.value)}
-              >
-                {item.tracks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Название кейса
-              <input
-                required
-                value={caseTitle}
-                onChange={(e) => setCaseTitle(e.target.value)}
-              />
-            </label>
-            <label>
-              Описание
-              <textarea
-                required
-                rows={3}
-                value={caseDescription}
-                onChange={(e) => setCaseDescription(e.target.value)}
-              />
-            </label>
-            <label>
-              Заказчик
-              <input
-                value={caseCustomer}
-                onChange={(e) => setCaseCustomer(e.target.value)}
-              />
-            </label>
-            <label>
-              Ссылка на ресурсы
-              <input
-                value={caseResources}
-                onChange={(e) => setCaseResources(e.target.value)}
-              />
-            </label>
-            <button type="submit" className="btn-secondary" disabled={busy}>
-              Добавить кейс
-            </button>
-          </form>
+          <h2>Треки и кейсы ({item.tracks.length})</h2>
+          {isDraft && !canPublish && (
+            <p className="form-hint organizer-publish-hint">
+              Перед публикацией нужен минимум один трек и один кейс.
+            </p>
+          )}
+          {id && (
+            <TrackCaseManager
+              hackathonId={id}
+              tracks={item.tracks}
+              isDraft={isDraft}
+              busy={busy}
+              setBusy={setBusy}
+              onChanged={reload}
+              onError={setError}
+            />
+          )}
         </section>
-      )}
+      </Reveal>
 
       {!isDraft && (
         <>
-          <section className="card glass detail-block">
-            <h2>Участники ({registrations.length})</h2>
-            {registrations.length === 0 ? (
-              <p className="muted">Пока никто не зарегистрировался.</p>
-            ) : (
-              <ul className="organizer-list">
-                {registrations.map((r) => (
-                  <li key={r.id}>
-                    <strong>{r.user.full_name}</strong>
-                    <span>{r.user.email}</span>
-                    <time>{formatDate(r.registered_at)}</time>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <Reveal delay={120}>
+            <section className="card glass detail-block">
+              <h2>Участники ({registrations.length})</h2>
+              {registrations.length === 0 ? (
+                <div className="organizer-empty-block">
+                  <p className="muted">Пока никто не зарегистрировался.</p>
+                  <p className="form-hint">
+                    Поделитесь ссылкой на карточку хакатона с участниками.
+                  </p>
+                </div>
+              ) : (
+                <ul className="organizer-list">
+                  {registrations.map((r) => (
+                    <li key={r.id}>
+                      <strong>{r.user.full_name}</strong>
+                      <span>{r.user.email}</span>
+                      <time>{formatDate(r.registered_at)}</time>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </Reveal>
 
-          <section className="card glass detail-block">
-            <h2>Сдачи ({submissions.length})</h2>
-            {submissions.length === 0 ? (
-              <p className="muted">Сдач пока нет.</p>
-            ) : (
-              <ul className="organizer-submissions">
-                {submissions.map((s) => (
-                  <li key={s.id} className="submission-row">
-                    <div>
-                      <strong>{s.team_name}</strong>
-                      {s.title && <span> — {s.title}</span>}
-                      {(s.track_title || s.case_title) && (
-                        <p className="muted">
-                          {[s.track_title, s.case_title].filter(Boolean).join(' · ')}
-                        </p>
-                      )}
-                    </div>
-                    <a href={s.repo_url} target="_blank" rel="noreferrer">
-                      Репозиторий
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <Reveal delay={160}>
+            <section className="card glass detail-block">
+              <h2>Сдачи ({submissions.length})</h2>
+              {submissions.length === 0 ? (
+                <div className="organizer-empty-block">
+                  <p className="muted">Сдач пока нет.</p>
+                  <p className="form-hint">
+                    Команды появятся здесь после выбора кейса и отправки решения.
+                  </p>
+                </div>
+              ) : (
+                <ul className="organizer-submissions">
+                  {submissions.map((s) => (
+                    <li key={s.id} className="submission-row">
+                      <div>
+                        <strong>{s.team_name}</strong>
+                        {s.title && <span> — {s.title}</span>}
+                        {(s.track_title || s.case_title) && (
+                          <p className="muted">
+                            {[s.track_title, s.case_title].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                        {s.submitted_at && (
+                          <p className="meta-sub">Сдано {formatDate(s.submitted_at)}</p>
+                        )}
+                      </div>
+                      <div className="submission-links">
+                        <a href={s.repo_url} target="_blank" rel="noreferrer">
+                          Репозиторий
+                        </a>
+                        {s.demo_url && (
+                          <a href={s.demo_url} target="_blank" rel="noreferrer">
+                            Демо
+                          </a>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </Reveal>
         </>
       )}
 
-      <section className="card glass detail-block muted-block">
-        <h2>Таймлайн</h2>
-        <p>
-          Регистрация: {formatDate(item.timeline.registration_opens_at)} -{" "}
-          {formatDate(item.timeline.registration_closes_at)}
-        </p>
-        <p>Дедлайн сдачи: {formatDate(item.timeline.submission_deadline_at)}</p>
-      </section>
+      <Reveal delay={200}>
+        <section className="card glass detail-block muted-block">
+          <h2>Таймлайн</h2>
+          <dl className="timeline-list">
+            <div>
+              <dt>Регистрация</dt>
+              <dd>
+                {formatDate(item.timeline.registration_opens_at)} —{" "}
+                {formatDate(item.timeline.registration_closes_at)}
+              </dd>
+            </div>
+            <div>
+              <dt>Событие</dt>
+              <dd>
+                {formatDate(item.timeline.event_starts_at)} —{" "}
+                {formatDate(item.timeline.event_ends_at)}
+              </dd>
+            </div>
+            <div>
+              <dt>Дедлайн сдачи</dt>
+              <dd>{formatDate(item.timeline.submission_deadline_at)}</dd>
+            </div>
+          </dl>
+        </section>
+      </Reveal>
     </section>
   );
 }

@@ -17,34 +17,34 @@ const flowSteps = [
   {
     step: "02",
     title: "Соберите команду и кейс",
-    text: "Создайте команду или вступите в существующую. Выберите трек и задачу от заказчика.",
+    text: "Создайте команду или вступите в существующую. Выберите трек и задачу от холдера.",
   },
   {
     step: "03",
-    title: "Кодьте до дедлайна",
-    text: "Работайте в своём темпе в окне хакатона. Все даты и статусы - на платформе.",
+    title: "Воплотите вашу идею в реальность",
+    text: "Работайте в своём темпе хакатона. Главное успейте))",
   },
   {
     step: "04",
     title: "Сдайте артефакты",
-    text: "Репозиторий, демо, питч - одним сабмитом до submission_deadline.",
+    text: "Репозиторий, демо, питч.",
   },
 ];
 
 const features = [
   {
     title: "Треки и кейсы",
-    text: "Реальные задачи от заказчиков с ресурсами и описанием - как на ЛЦТ и Цифровом прорыве.",
+    text: "Реальные задачи от наших партнеров.",
     accent: "cyan",
   },
   {
     title: "Прозрачный таймлайн",
-    text: "Регистрация, старт кодинга и дедлайн сдачи - без сюрпризов для команд и жюри.",
+    text: "Регистрация, старт кодинга и дедлайн сдачи.",
     accent: "blue",
   },
   {
-    title: "Роли без хаоса",
-    text: "Организатор ведёт событие, участник проходит путь от записи до сабмита.",
+    title: "Команды",
+    text: "Создайте команду или вступите в существующую.",
     accent: "purple",
   },
 ];
@@ -96,10 +96,9 @@ export function HomePage() {
           </Reveal>
           <Reveal delay={160}>
             <p className="landing-lead">
-              Единая среда для хакатонов уровня{" "}
-              <strong>«Лидеры цифровой трансформации»</strong> и{" "}
-              <strong>«Цифровой прорыв»</strong>: каталог событий, треки, кейсы,
-              команды и артефакты сдачи - без Excel и хаоса в чатах.
+              Единая среда для хакатонов уровня. Тут проводились:{" "}
+              <strong>«ЛЦТ»</strong> и <strong>«Цифровой прорыв»</strong>:
+              каталог событий, треки, кейсы, команды.
             </p>
           </Reveal>
           <Reveal delay={220}>
@@ -231,7 +230,7 @@ export function HomePage() {
                 </Link>
               )}
               <p className="landing-demo-hint">
-                Демо: organizer@demo.local / demo12345
+                Демо: admin@admin.ru / admin или user@user.ru / user
               </p>
             </div>
           </div>
@@ -260,7 +259,19 @@ export function HomePage() {
             </div>
           )}
           {error && <p className="form-error">{error}</p>}
-          {!loading && (
+          {!loading && items.length === 0 && !error && (
+            <div className="card glass catalog-empty">
+              <h3>Пока нет открытых хакатонов</h3>
+              <p className="muted">
+                Загляните позже или войдите как организатор, чтобы создать
+                событие.
+              </p>
+              <Link to="/register" className="btn-secondary">
+                Зарегистрироваться
+              </Link>
+            </div>
+          )}
+          {!loading && items.length > 0 && (
             <div className="hackathon-grid">
               {items.map((item, i) => (
                 <Reveal key={item.id} delay={i * 60}>

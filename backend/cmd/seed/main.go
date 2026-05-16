@@ -34,6 +34,7 @@ func main() {
 	users := postgres_repo.NewUsersRepository(db)
 	hackathonsRepo := postgres_repo.NewHackathonsRepository(db)
 	hackathons := hackathon_usecase.NewHackathonUseCase(hackathonsRepo)
+	participation := postgres_repo.NewParticipationRepository(db)
 
-	seed.Run(context.Background(), users, hackathons, logger.New())
+	seed.Run(context.Background(), users, hackathonsRepo, hackathons, participation, logger.New())
 }

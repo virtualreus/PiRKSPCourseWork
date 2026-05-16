@@ -39,18 +39,25 @@ type demoHackathon struct {
 	resourcesURL     string
 }
 
-func Run(ctx context.Context, users repository.UsersRepository, hackathons usecase.HackathonUseCase, log *slog.Logger) {
+func Run(
+	ctx context.Context,
+	users repository.UsersRepository,
+	hackathonsRepo repository.HackathonsRepository,
+	hackathons usecase.HackathonUseCase,
+	participation repository.ParticipationRepository,
+	log *slog.Logger,
+) {
 	if os.Getenv("SEED_DISABLE") == "1" {
 		return
 	}
 
-	organizer, err := ensureUser(ctx, users, "organizer@demo.local", "Демо Организатор", "organizer", "demo12345")
+	organizer, err := ensureUser(ctx, users, "admin@admin.ru", "Администратор", "organizer", "admin")
 	if err != nil {
 		log.Warn("seed: organizer", "err", err)
 		return
 	}
 
-	_, _ = ensureUser(ctx, users, "participant@demo.local", "Алексей Участников", "participant", "demo12345")
+	_, _ = ensureUser(ctx, users, "user@user.ru", "Пользователь", "participant", "user")
 
 	existing, err := hackathons.ListOrganizer(ctx, organizer.ID)
 	if err != nil {
@@ -58,6 +65,7 @@ func Run(ctx context.Context, users repository.UsersRepository, hackathons useca
 		return
 	}
 	if len(existing) > 0 {
+		seedParticipation(ctx, users, hackathonsRepo, participation, log)
 		return
 	}
 
@@ -148,6 +156,7 @@ func Run(ctx context.Context, users repository.UsersRepository, hackathons useca
 	}
 
 	log.Info("seed: demo data ready", "hackathons", len(demos))
+	seedParticipation(ctx, users, hackathonsRepo, participation, log)
 }
 
 func ensureUser(ctx context.Context, users repository.UsersRepository, email, name, role, password string) (entities.User, error) {

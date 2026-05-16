@@ -61,3 +61,25 @@ export function createCase(trackId: string, body: CreateCaseRequest): Promise<Ca
     body: JSON.stringify(body),
   });
 }
+
+export function updateTrack(trackId: string, body: CreateTrackRequest): Promise<Track> {
+  return api<Track>(`/organizer/tracks/${trackId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteTrack(trackId: string): Promise<void> {
+  return api<void>(`/organizer/tracks/${trackId}`, { method: 'DELETE' });
+}
+
+export function updateCase(caseId: string, body: CreateCaseRequest): Promise<Case> {
+  return api<Case>(`/organizer/cases/${caseId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteCase(caseId: string): Promise<void> {
+  return api<void>(`/organizer/cases/${caseId}`, { method: 'DELETE' });
+}
