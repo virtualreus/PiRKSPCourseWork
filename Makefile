@@ -1,8 +1,10 @@
-.PHONY: help dev up down install setup env db db-down backend frontend seed
+.PHONY: help dev up down install setup env db db-down backend frontend seed \
+	railway-login railway-api railway-web
 
 COMPOSE := docker compose
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
+RAILWAY := npx @railway/cli
 
 help:
 	@echo "Targets:"
@@ -12,6 +14,9 @@ help:
 	@echo "  make db      - only PostgreSQL in Docker"
 	@echo "  make seed    - demo organizer + published hackathon"
 	@echo "  make down    - stop Docker postgres"
+	@echo "  make railway-login - browser login to Railway"
+	@echo "  make railway-api   - deploy API from backend/ (after link project)"
+	@echo "  make railway-web   - deploy frontend (set VITE_API_URL first)"
 
 setup: install env
 
@@ -56,3 +61,12 @@ backend: setup db
 frontend: setup
 	@set -a; [ -f $(FRONTEND_DIR)/.env ] && . ./$(FRONTEND_DIR)/.env; set +a; \
 	cd $(FRONTEND_DIR) && npm run dev
+
+railway-login:
+	$(RAILWAY) login
+
+railway-api:
+	cd $(BACKEND_DIR) && $(RAILWAY) up
+
+railway-web:
+	cd $(FRONTEND_DIR) && $(RAILWAY) up

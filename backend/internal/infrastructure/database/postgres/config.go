@@ -27,8 +27,15 @@ func NewConfig() (Config, error) {
 	driver := os.Getenv("PG_DRIVER")
 	dsn := os.Getenv("PG_DSN")
 
+	if dsn == "" {
+		dsn = os.Getenv("DATABASE_URL")
+	}
+	if driver == "" && dsn != "" {
+		driver = "postgres"
+	}
+
 	if driver == "" || dsn == "" {
-		return nil, fmt.Errorf("PG_DRIVER and PG_DSN environment variables are required")
+		return nil, fmt.Errorf("set PG_DSN or DATABASE_URL (and optionally PG_DRIVER)")
 	}
 
 	return &PGConfig{driver: driver, dsn: dsn}, nil
