@@ -1,0 +1,11 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "docker/web.Dockerfile"
+watchPatterns = ["frontend/**", "docker/web.Dockerfile", "railway.web.toml"]
+
+[build.buildArgs]
+VITE_API_URL = "${{VITE_API_URL}}"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

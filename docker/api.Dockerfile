@@ -1,15 +1,18 @@
+# Monorepo build context: repository root (Railway GitHub deploy).
+# Local dev: use backend/Dockerfile from backend/ directory.
+
 FROM golang:1.23-alpine AS builder
 
 WORKDIR /src
 
 RUN apk add --no-cache git
 
-COPY go.mod go.sum ./
+COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
-COPY cmd ./cmd
-COPY internal ./internal
-COPY pkg ./pkg
+COPY backend/cmd ./cmd
+COPY backend/internal ./internal
+COPY backend/pkg ./pkg
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /bin/api ./cmd/app
 

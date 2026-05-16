@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 )
 
 type Config interface {
@@ -38,5 +40,36 @@ func NewConfig() (Config, error) {
 		return nil, fmt.Errorf("set PG_DSN or DATABASE_URL (and optionally PG_DRIVER)")
 	}
 
+	dsn, err := ensurePostgresSSL(dsn)
+	if err != nil {
+		return nil, err
+	}
+
 	return &PGConfig{driver: driver, dsn: dsn}, nil
+}
+
+// ensurePostgresSSL adds sslmode=require for hosted Postgres (e.g. Railway proxy URLs).
+func ensurePostgresSSL(dsn string) (string, error) {
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return dsn, nil
+	}
+
+	if u.Scheme != "postgres" && u.Scheme != "postgresql" {
+		return dsn, nil
+	}
+
+	host := strings.ToLower(u.Hostname())
+	if host == "" || host == "localhost" || host == "127.0.0.1" || strings.HasSuffix(host, ".internal") {
+		return dsn, nil
+	}
+
+	q := u.Query()
+	if q.Get("sslmode") != "" {
+		return dsn, nil
+	}
+
+	q.Set("sslmode", "require")
+	u.RawQuery = q.Encode()
+	return u.String(), nil
 }

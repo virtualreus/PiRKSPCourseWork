@@ -3,8 +3,11 @@ docs_coursework/
 .env
 .DS_Store
 
+node_modules/
+
 backend/bin/
-backend/api
+# Compiled binary only (not backend/cmd/api — Railway treats "backend/api" as that tree).
+/backend/api
 
 frontend/node_modules/
 frontend/dist/
