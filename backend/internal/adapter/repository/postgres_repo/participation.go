@@ -9,7 +9,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/nikitatisenko/pirksp/internal/domain/entities"
 	"github.com/nikitatisenko/pirksp/internal/domain/ports/repository"
@@ -39,8 +38,7 @@ func (r *participationRepository) CreateRegistration(ctx context.Context, reg en
 
 	var created entities.HackathonRegistration
 	if err := r.db.SqlxDB().QueryRowxContext(ctx, query, args...).StructScan(&created); err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		if isUniqueViolation(err) {
 			return entities.HackathonRegistration{}, errs.ErrAlreadyRegistered
 		}
 		return entities.HackathonRegistration{}, err
@@ -235,8 +233,7 @@ func (r *participationRepository) AddMember(ctx context.Context, teamID, userID 
 	}
 
 	if _, err := r.db.SqlxDB().ExecContext(ctx, query, args...); err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		if isUniqueViolation(err) {
 			return errs.ErrAlreadyInTeam
 		}
 		return err

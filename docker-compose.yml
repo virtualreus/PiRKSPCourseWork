@@ -6,16 +6,49 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${PG_USER:-hackathon}
-      POSTGRES_PASSWORD: ${PG_PASSWORD:-hackathon}
-      POSTGRES_DB: ${PG_DB:-hackathon}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-hackathon} -d ${PG_DB:-hackathon}"]
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  api:
+    container_name: hackathon-api
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: "8080"
+      PG_DSN: postgres://${PG_USER}:${PG_PASSWORD}@db:5432/${PG_DB}?sslmode=disable
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://127.0.0.1:5173}
+    ports:
+      - "127.0.0.1:${API_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    container_name: hackathon-web
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://127.0.0.1:8080/api/v1}
+    restart: unless-stopped
+    environment:
+      PORT: "80"
+    ports:
+      - "127.0.0.1:${WEB_PORT:-5173}:80"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:

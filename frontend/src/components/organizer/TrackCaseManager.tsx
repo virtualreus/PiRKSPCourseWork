@@ -1,8 +1,13 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from "react";
 
-import * as hackathonsApi from '../../api/hackathons';
-import type { Case, CreateCaseRequest, CreateTrackRequest, TrackWithCases } from '../../api/hackathonTypes';
-import { ApiError } from '../../api/client';
+import * as hackathonsApi from "../../api/hackathons";
+import type {
+  Case,
+  CreateCaseRequest,
+  CreateTrackRequest,
+  TrackWithCases,
+} from "../../api/hackathonTypes";
+import { ApiError } from "../../api/client";
 
 type TrackCaseManagerProps = {
   hackathonId: string;
@@ -23,25 +28,25 @@ export function TrackCaseManager({
   onChanged,
   onError,
 }: TrackCaseManagerProps) {
-  const [trackTitle, setTrackTitle] = useState('');
-  const [trackDescription, setTrackDescription] = useState('');
-  const [caseTitle, setCaseTitle] = useState('');
-  const [caseDescription, setCaseDescription] = useState('');
-  const [caseCustomer, setCaseCustomer] = useState('');
-  const [caseResources, setCaseResources] = useState('');
-  const [selectedTrackId, setSelectedTrackId] = useState(tracks[0]?.id ?? '');
+  const [trackTitle, setTrackTitle] = useState("");
+  const [trackDescription, setTrackDescription] = useState("");
+  const [caseTitle, setCaseTitle] = useState("");
+  const [caseDescription, setCaseDescription] = useState("");
+  const [caseCustomer, setCaseCustomer] = useState("");
+  const [caseResources, setCaseResources] = useState("");
+  const [selectedTrackId, setSelectedTrackId] = useState(tracks[0]?.id ?? "");
   const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
   const [editingCaseId, setEditingCaseId] = useState<string | null>(null);
-  const [editTrackTitle, setEditTrackTitle] = useState('');
-  const [editTrackDesc, setEditTrackDesc] = useState('');
+  const [editTrackTitle, setEditTrackTitle] = useState("");
+  const [editTrackDesc, setEditTrackDesc] = useState("");
   const [editCaseForm, setEditCaseForm] = useState<CreateCaseRequest>({
-    title: '',
-    description: '',
+    title: "",
+    description: "",
   });
 
   async function runAction(action: () => Promise<void>) {
     setBusy(true);
-    onError('');
+    onError("");
     try {
       await action();
       await onChanged();
@@ -49,7 +54,7 @@ export function TrackCaseManager({
       if (err instanceof ApiError) {
         onError(err.message);
       } else {
-        onError('Не удалось выполнить действие');
+        onError("Не удалось выполнить действие");
       }
     } finally {
       setBusy(false);
@@ -63,8 +68,8 @@ export function TrackCaseManager({
         title: trackTitle.trim(),
         description: trackDescription.trim() || undefined,
       });
-      setTrackTitle('');
-      setTrackDescription('');
+      setTrackTitle("");
+      setTrackDescription("");
     });
   }
 
@@ -80,10 +85,10 @@ export function TrackCaseManager({
         customer_name: caseCustomer.trim() || undefined,
         resources_url: caseResources.trim() || undefined,
       });
-      setCaseTitle('');
-      setCaseDescription('');
-      setCaseCustomer('');
-      setCaseResources('');
+      setCaseTitle("");
+      setCaseDescription("");
+      setCaseCustomer("");
+      setCaseResources("");
     });
   }
 
@@ -91,7 +96,7 @@ export function TrackCaseManager({
     setEditingTrackId(track.id);
     setEditingCaseId(null);
     setEditTrackTitle(track.title);
-    setEditTrackDesc(track.description ?? '');
+    setEditTrackDesc(track.description ?? "");
   }
 
   function startEditCase(c: Case) {
@@ -99,7 +104,7 @@ export function TrackCaseManager({
     setEditingTrackId(null);
     setEditCaseForm({
       title: c.title,
-      description: c.description ?? '',
+      description: c.description ?? "",
       customer_name: c.customer_name,
       resources_url: c.resources_url,
     });
@@ -157,7 +162,8 @@ export function TrackCaseManager({
       <div className="organizer-tracks-list">
         {tracks.length === 0 ? (
           <p className="muted organizer-empty-hint">
-            Добавьте хотя бы один трек и кейс — без них участники не смогут сдать решение.
+            Добавьте хотя бы один трек и кейс - без них участники не смогут
+            сдать решение.
           </p>
         ) : (
           tracks.map((track) => (
@@ -202,7 +208,9 @@ export function TrackCaseManager({
                 <div className="organizer-track-head">
                   <div>
                     <h3>{track.title}</h3>
-                    {track.description && <p className="muted">{track.description}</p>}
+                    {track.description && (
+                      <p className="muted">{track.description}</p>
+                    )}
                   </div>
                   {isDraft && (
                     <div className="organizer-item-actions">
@@ -238,7 +246,10 @@ export function TrackCaseManager({
                             required
                             value={editCaseForm.title}
                             onChange={(e) =>
-                              setEditCaseForm({ ...editCaseForm, title: e.target.value })
+                              setEditCaseForm({
+                                ...editCaseForm,
+                                title: e.target.value,
+                              })
                             }
                           />
                         </label>
@@ -249,16 +260,22 @@ export function TrackCaseManager({
                             rows={2}
                             value={editCaseForm.description}
                             onChange={(e) =>
-                              setEditCaseForm({ ...editCaseForm, description: e.target.value })
+                              setEditCaseForm({
+                                ...editCaseForm,
+                                description: e.target.value,
+                              })
                             }
                           />
                         </label>
                         <label>
                           Заказчик
                           <input
-                            value={editCaseForm.customer_name ?? ''}
+                            value={editCaseForm.customer_name ?? ""}
                             onChange={(e) =>
-                              setEditCaseForm({ ...editCaseForm, customer_name: e.target.value })
+                              setEditCaseForm({
+                                ...editCaseForm,
+                                customer_name: e.target.value,
+                              })
                             }
                           />
                         </label>
@@ -288,7 +305,9 @@ export function TrackCaseManager({
                           {c.customer_name && (
                             <span className="muted"> · {c.customer_name}</span>
                           )}
-                          {c.description && <p className="muted case-desc">{c.description}</p>}
+                          {c.description && (
+                            <p className="muted case-desc">{c.description}</p>
+                          )}
                         </div>
                         {isDraft && (
                           <div className="organizer-item-actions">
@@ -322,7 +341,10 @@ export function TrackCaseManager({
 
       {isDraft && (
         <>
-          <form className="inline-form organizer-add-form" onSubmit={handleAddTrack}>
+          <form
+            className="inline-form organizer-add-form"
+            onSubmit={handleAddTrack}
+          >
             <h3>Добавить трек</h3>
             <label>
               Название
@@ -346,7 +368,10 @@ export function TrackCaseManager({
           </form>
 
           {tracks.length > 0 && (
-            <form className="inline-form organizer-add-form" onSubmit={handleAddCase}>
+            <form
+              className="inline-form organizer-add-form"
+              onSubmit={handleAddCase}
+            >
               <h3>Добавить кейс</h3>
               <label>
                 Трек
@@ -380,7 +405,10 @@ export function TrackCaseManager({
               </label>
               <label>
                 Заказчик
-                <input value={caseCustomer} onChange={(e) => setCaseCustomer(e.target.value)} />
+                <input
+                  value={caseCustomer}
+                  onChange={(e) => setCaseCustomer(e.target.value)}
+                />
               </label>
               <label>
                 Ссылка на ресурсы

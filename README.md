@@ -47,6 +47,10 @@
 │   ├── Dockerfile           # nginx со статикой
 │   └── railway.toml
 ├── docker/                  # Dockerfile'ы для деплоя из корня (monorepo)
+├── fuzzing/
+│   ├── fuzz.py              # фаззинг API (Schemathesis + бизнес-сценарии)
+│   ├── requirements.txt     # Python-зависимости
+│   └── reports/             # протоколы прогона (make fuzz)
 ├── openapi.yaml
 ├── docker-compose.yml
 ├── Makefile
@@ -98,17 +102,18 @@ git clone https://github.com/virtualreus/PiRKSPCourseWork.git
 cd PiRKSPCourseWork
 
 cp .env.example .env
-cp frontend/.env.example frontend/.env
 
-make dev
+make up
 ```
 
-Откроется:
+Откроется (всё в Docker):
 
 - фронт: http://localhost:5173
 - API: http://localhost:8080/api/v1/health
 
-Остановить API и Vite - `Ctrl+C`. Postgres в Docker после этого ещё крутится; выключить: `make down`.
+Остановить: `make down`.
+
+Разработка на хосте (Postgres в Docker, API + Vite локально): `make dev-local`.
 
 ### Windows (PowerShell)
 
@@ -119,24 +124,13 @@ git clone https://github.com/virtualreus/PiRKSPCourseWork.git
 cd PiRKSPCourseWork
 
 Copy-Item .env.example .env
-Copy-Item frontend\.env.example frontend\.env
 
-docker compose up -d --wait
-
-cd backend
-go mod download
-go run ./cmd/app
+docker compose up --build -d --wait
 ```
 
-Во втором терминале:
+Веб: http://localhost:5173 · API: http://localhost:8080/api/v1/health
 
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-`make dev` на Windows можно через [Git Bash](https://git-scm.com/) или WSL - тогда всё как на Linux.
+`make dev-local` / отдельные `go run` + `npm run dev` — если нужен hot-reload без пересборки образов.
 
 ---
 
@@ -181,12 +175,39 @@ npm run dev
 
 ```bash
 make setup       # go mod + npm install + .env
-make db          # только Postgres в Docker
-make dev         # postgres + API + frontend
-make backend     # только API
-make frontend    # только Vite
-make seed        # демо-данные
-make down        # остановить postgres
+make up          # db + api + web в Docker
+make dev-local   # postgres в Docker, API + Vite на хосте
+make db          # только PostgreSQL
+make seed        # демо-данные (нужен запущенный API или make dev-local)
+make down        # остановить compose
+make fuzz        # фаззинг API (Schemathesis + бизнес-сценарии)
+make fuzz-deps   # только установить .venv-fuzz
+```
+
+---
+
+## Тестирование API (fuzz)
+
+Локальный прогон против `http://127.0.0.1:8080/api/v1` (не production):
+
+```bash
+make fuzz
+```
+
+Что делает `make fuzz`:
+
+1. Создаёт `fuzzing/.venv` и ставит [Schemathesis](https://schemathesis.readthedocs.io/) из `fuzzing/requirements.txt`
+2. Если API недоступен — поднимает только `db` + `api` (без `web`, не тянет node/nginx)
+3. **Бизнес-сценарии** — роли, повторная регистрация, `no_case`, команды, 403/409
+4. **Schemathesis** — фаззинг GET-эндпоинтов по [`openapi.yaml`](openapi.yaml) с проверкой статусов и схемы ответа
+
+Отчёты: `fuzzing/reports/report_latest.txt`, `fuzzing/reports/summary_latest.txt`.
+
+Переменные (опционально): `FUZZ_API_BASE`, `SCHEMATHESIS_MAX_EXAMPLES` (по умолчанию 12).
+
+```bash
+make fuzz-deps
+fuzzing/.venv/bin/python fuzzing/fuzz.py
 ```
 
 ---

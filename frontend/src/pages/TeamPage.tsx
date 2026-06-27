@@ -1,15 +1,19 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-import * as hackathonsApi from '../api/hackathons';
-import type { HackathonDetail } from '../api/hackathonTypes';
-import * as participationApi from '../api/participation';
-import type { ParticipationStatus, Team, TeamMemberRole } from '../api/participationTypes';
-import { ApiError } from '../api/client';
-import { ParticipationAlert } from '../components/ParticipationAlert';
-import { Reveal } from '../components/Reveal';
-import { useAuth } from '../context/AuthContext';
-import { teamRoleLabel } from '../utils/team';
+import * as hackathonsApi from "../api/hackathons";
+import type { HackathonDetail } from "../api/hackathonTypes";
+import * as participationApi from "../api/participation";
+import type {
+  ParticipationStatus,
+  Team,
+  TeamMemberRole,
+} from "../api/participationTypes";
+import { ApiError } from "../api/client";
+import { ParticipationAlert } from "../components/ParticipationAlert";
+import { Reveal } from "../components/Reveal";
+import { useAuth } from "../context/AuthContext";
+import { teamRoleLabel } from "../utils/team";
 
 export function TeamPage() {
   const { id } = useParams();
@@ -19,20 +23,26 @@ export function TeamPage() {
   const [hackathon, setHackathon] = useState<HackathonDetail | null>(null);
   const [status, setStatus] = useState<ParticipationStatus | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [teamName, setTeamName] = useState('');
-  const [trackId, setTrackId] = useState('');
-  const [caseId, setCaseId] = useState('');
-  const [joinRole, setJoinRole] = useState<TeamMemberRole>('developer');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [teamName, setTeamName] = useState("");
+  const [trackId, setTrackId] = useState("");
+  const [caseId, setCaseId] = useState("");
+  const [joinRole, setJoinRole] = useState<TeamMemberRole>("developer");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   const myTeam = status?.team ?? null;
   const isCaptain = myTeam && user?.id === myTeam.captain_id;
-  const selectedTrack = hackathon?.tracks.find((t) => t.id === myTeam?.track_id);
-  const selectedCase = selectedTrack?.cases?.find((c) => c.id === myTeam?.case_id);
-  const needsCase = Boolean(myTeam && !myTeam.case_id && hackathon && hackathon.tracks.length > 0);
+  const selectedTrack = hackathon?.tracks.find(
+    (t) => t.id === myTeam?.track_id,
+  );
+  const selectedCase = selectedTrack?.cases?.find(
+    (c) => c.id === myTeam?.case_id,
+  );
+  const needsCase = Boolean(
+    myTeam && !myTeam.case_id && hackathon && hackathon.tracks.length > 0,
+  );
 
   const casesForTrack = useMemo(() => {
     if (!hackathon || !trackId) {
@@ -73,7 +83,7 @@ export function TeamPage() {
         if (err instanceof ApiError) {
           setError(err.message);
         } else {
-          setError('Не удалось загрузить данные');
+          setError("Не удалось загрузить данные");
         }
       } finally {
         setLoading(false);
@@ -93,17 +103,17 @@ export function TeamPage() {
       return;
     }
     setBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     try {
       await participationApi.createTeam(id, {
         name: teamName.trim(),
         track_id: trackId || undefined,
         case_id: caseId || undefined,
-        team_role: 'team_lead',
+        team_role: "team_lead",
       });
-      setMessage('Команда создана');
-      setTeamName('');
+      setMessage("Команда создана");
+      setTeamName("");
       await reload();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -116,11 +126,11 @@ export function TeamPage() {
 
   async function handleJoin(teamId: string) {
     setBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     try {
       await participationApi.joinTeam(teamId, { team_role: joinRole });
-      setMessage('Вы вступили в команду');
+      setMessage("Вы вступили в команду");
       await reload();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -132,14 +142,14 @@ export function TeamPage() {
   }
 
   async function handleLeave() {
-    if (!myTeam || !confirm('Выйти из команды?')) {
+    if (!myTeam || !confirm("Выйти из команды?")) {
       return;
     }
     setBusy(true);
-    setError('');
+    setError("");
     try {
       await participationApi.leaveTeam(myTeam.id);
-      setMessage('Вы вышли из команды');
+      setMessage("Вы вышли из команды");
       await reload();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -156,14 +166,14 @@ export function TeamPage() {
       return;
     }
     setBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     try {
       await participationApi.updateTeam(myTeam.id, {
         track_id: trackId || undefined,
         case_id: caseId || undefined,
       });
-      setMessage('Трек и кейс обновлены');
+      setMessage("Трек и кейс обновлены");
       await reload();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -198,7 +208,8 @@ export function TeamPage() {
           <div>
             <h1 className="participate-title">Команда</h1>
             <p className="participate-lead">
-              До {hackathon.max_team_size} человек · кейс обязателен перед сдачей решения
+              До {hackathon.max_team_size} человек · кейс обязателен перед
+              сдачей решения
             </p>
           </div>
         </header>
@@ -212,11 +223,13 @@ export function TeamPage() {
           {needsCase && (
             <ParticipationAlert
               variant="warning"
-              title={isCaptain ? 'Выберите кейс для сдачи' : 'Ожидается выбор кейса'}
+              title={
+                isCaptain ? "Выберите кейс для сдачи" : "Ожидается выбор кейса"
+              }
             >
               {isCaptain
-                ? 'Без выбранного трека и кейса форма сдачи будет заблокирована. Укажите их ниже и нажмите «Сохранить выбор».'
-                : 'Капитан команды должен выбрать трек и кейс — после этого откроется сдача решения.'}
+                ? "Без выбранного трека и кейса форма сдачи будет заблокирована. Укажите их ниже и нажмите «Сохранить выбор»."
+                : "Капитан команды должен выбрать трек и кейс - после этого откроется сдача решения."}
             </ParticipationAlert>
           )}
 
@@ -229,11 +242,11 @@ export function TeamPage() {
             <div className="team-case-summary">
               <div>
                 <span className="meta-label">Трек</span>
-                <strong>{selectedTrack?.title ?? 'Не выбран'}</strong>
+                <strong>{selectedTrack?.title ?? "Не выбран"}</strong>
               </div>
               <div>
                 <span className="meta-label">Кейс</span>
-                <strong>{selectedCase?.title ?? 'Не выбран'}</strong>
+                <strong>{selectedCase?.title ?? "Не выбран"}</strong>
               </div>
             </div>
 
@@ -241,7 +254,9 @@ export function TeamPage() {
               {myTeam.members.map((m) => (
                 <li key={m.user_id}>
                   <span className="member-name">{m.full_name}</span>
-                  <span className="member-role">{teamRoleLabel(m.team_role)}</span>
+                  <span className="member-role">
+                    {teamRoleLabel(m.team_role)}
+                  </span>
                   {m.user_id === myTeam.captain_id && (
                     <span className="member-captain">капитан</span>
                   )}
@@ -250,10 +265,17 @@ export function TeamPage() {
             </ul>
 
             {isCaptain && hackathon.tracks.length > 0 && (
-              <form className="inline-form team-track-form" onSubmit={handleUpdateTrackCase}>
-                <h3>Трек и кейс {needsCase && <span className="required-mark">*</span>}</h3>
+              <form
+                className="inline-form team-track-form"
+                onSubmit={handleUpdateTrackCase}
+              >
+                <h3>
+                  Трек и кейс{" "}
+                  {needsCase && <span className="required-mark">*</span>}
+                </h3>
                 <p className="form-section-hint">
-                  Выбор кейса открывает возможность сдать решение на следующем шаге.
+                  Выбор кейса открывает возможность сдать решение на следующем
+                  шаге.
                 </p>
                 <label>
                   Трек
@@ -261,7 +283,7 @@ export function TeamPage() {
                     value={trackId}
                     onChange={(e) => {
                       setTrackId(e.target.value);
-                      setCaseId('');
+                      setCaseId("");
                     }}
                   >
                     <option value="">Не выбран</option>
@@ -275,7 +297,10 @@ export function TeamPage() {
                 {casesForTrack.length > 0 && (
                   <label>
                     Кейс
-                    <select value={caseId} onChange={(e) => setCaseId(e.target.value)}>
+                    <select
+                      value={caseId}
+                      onChange={(e) => setCaseId(e.target.value)}
+                    >
                       <option value="">Не выбран</option>
                       {casesForTrack.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -300,12 +325,17 @@ export function TeamPage() {
             <div className="team-actions">
               <Link
                 to={`/hackathons/${id}/submission`}
-                className={`btn-primary ${needsCase ? 'btn-disabled' : ''}`}
-                title={needsCase ? 'Сначала выберите кейс' : undefined}
+                className={`btn-primary ${needsCase ? "btn-disabled" : ""}`}
+                title={needsCase ? "Сначала выберите кейс" : undefined}
               >
                 К сдаче решения
               </Link>
-              <button type="button" className="btn-ghost" disabled={busy} onClick={handleLeave}>
+              <button
+                type="button"
+                className="btn-ghost"
+                disabled={busy}
+                onClick={handleLeave}
+              >
                 Выйти из команды
               </button>
             </div>
@@ -336,7 +366,7 @@ export function TeamPage() {
                         value={trackId}
                         onChange={(e) => {
                           setTrackId(e.target.value);
-                          setCaseId('');
+                          setCaseId("");
                         }}
                       >
                         <option value="">Позже</option>
@@ -350,7 +380,10 @@ export function TeamPage() {
                     {casesForTrack.length > 0 && (
                       <label>
                         Кейс
-                        <select value={caseId} onChange={(e) => setCaseId(e.target.value)}>
+                        <select
+                          value={caseId}
+                          onChange={(e) => setCaseId(e.target.value)}
+                        >
                           <option value="">Позже</option>
                           {casesForTrack.map((c) => (
                             <option key={c.id} value={c.id}>
@@ -362,7 +395,11 @@ export function TeamPage() {
                     )}
                   </>
                 )}
-                <button type="submit" className="btn-primary" disabled={busy || !status?.can_create_team}>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={busy || !status?.can_create_team}
+                >
                   Создать
                 </button>
               </form>
@@ -374,7 +411,12 @@ export function TeamPage() {
               <h2>Присоединиться</h2>
               <label className="join-role-label">
                 Ваша роль в команде
-                <select value={joinRole} onChange={(e) => setJoinRole(e.target.value as TeamMemberRole)}>
+                <select
+                  value={joinRole}
+                  onChange={(e) =>
+                    setJoinRole(e.target.value as TeamMemberRole)
+                  }
+                >
                   <option value="developer">Разработчик</option>
                   <option value="designer">Дизайнер</option>
                   <option value="data_scientist">Data Scientist</option>
@@ -383,12 +425,16 @@ export function TeamPage() {
                 </select>
               </label>
               {teams.length === 0 ? (
-                <p className="muted">Пока нет открытых команд — создайте свою.</p>
+                <p className="muted">
+                  Пока нет открытых команд - создайте свою.
+                </p>
               ) : (
                 <ul className="team-join-list">
                   {teams.map((t) => {
                     const full = t.members.length >= hackathon.max_team_size;
-                    const alreadyMember = t.members.some((m) => m.user_id === user?.id);
+                    const alreadyMember = t.members.some(
+                      (m) => m.user_id === user?.id,
+                    );
                     return (
                       <li key={t.id} className="team-join-item">
                         <div>
@@ -403,7 +449,11 @@ export function TeamPage() {
                           disabled={busy || full || alreadyMember}
                           onClick={() => handleJoin(t.id)}
                         >
-                          {alreadyMember ? 'Вы в команде' : full ? 'Мест нет' : 'Вступить'}
+                          {alreadyMember
+                            ? "Вы в команде"
+                            : full
+                              ? "Мест нет"
+                              : "Вступить"}
                         </button>
                       </li>
                     );

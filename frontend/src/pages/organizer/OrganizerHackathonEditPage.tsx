@@ -19,7 +19,9 @@ export function OrganizerHackathonEditPage() {
   const [item, setItem] = useState<HackathonDetail | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [registrations, setRegistrations] = useState<HackathonRegistrationWithUser[]>([]);
+  const [registrations, setRegistrations] = useState<
+    HackathonRegistrationWithUser[]
+  >([]);
   const [submissions, setSubmissions] = useState<SubmissionWithTeam[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -120,7 +122,9 @@ export function OrganizerHackathonEditPage() {
 
   const isDraft = item.status === "draft";
   const canPublish =
-    isDraft && item.tracks.length > 0 && item.tracks.some((t) => (t.cases?.length ?? 0) > 0);
+    isDraft &&
+    item.tracks.length > 0 &&
+    item.tracks.some((t) => (t.cases?.length ?? 0) > 0);
 
   return (
     <section className="organizer-page organizer-page-wide">
@@ -144,9 +148,7 @@ export function OrganizerHackathonEditPage() {
               className="btn-primary"
               disabled={busy || !canPublish}
               title={
-                canPublish
-                  ? undefined
-                  : "Добавьте хотя бы один трек с кейсом"
+                canPublish ? undefined : "Добавьте хотя бы один трек с кейсом"
               }
               onClick={handlePublish}
             >
@@ -225,7 +227,8 @@ export function OrganizerHackathonEditPage() {
                 <div className="organizer-empty-block">
                   <p className="muted">Сдач пока нет.</p>
                   <p className="form-hint">
-                    Команды появятся здесь после выбора кейса и отправки решения.
+                    Команды появятся здесь после выбора кейса и отправки
+                    решения.
                   </p>
                 </div>
               ) : (
@@ -234,14 +237,18 @@ export function OrganizerHackathonEditPage() {
                     <li key={s.id} className="submission-row">
                       <div>
                         <strong>{s.team_name}</strong>
-                        {s.title && <span> — {s.title}</span>}
+                        {s.title && <span> - {s.title}</span>}
                         {(s.track_title || s.case_title) && (
                           <p className="muted">
-                            {[s.track_title, s.case_title].filter(Boolean).join(" · ")}
+                            {[s.track_title, s.case_title]
+                              .filter(Boolean)
+                              .join(" · ")}
                           </p>
                         )}
                         {s.submitted_at && (
-                          <p className="meta-sub">Сдано {formatDate(s.submitted_at)}</p>
+                          <p className="meta-sub">
+                            Сдано {formatDate(s.submitted_at)}
+                          </p>
                         )}
                       </div>
                       <div className="submission-links">
@@ -270,14 +277,14 @@ export function OrganizerHackathonEditPage() {
             <div>
               <dt>Регистрация</dt>
               <dd>
-                {formatDate(item.timeline.registration_opens_at)} —{" "}
+                {formatDate(item.timeline.registration_opens_at)} -{" "}
                 {formatDate(item.timeline.registration_closes_at)}
               </dd>
             </div>
             <div>
               <dt>Событие</dt>
               <dd>
-                {formatDate(item.timeline.event_starts_at)} —{" "}
+                {formatDate(item.timeline.event_starts_at)} -{" "}
                 {formatDate(item.timeline.event_ends_at)}
               </dd>
             </div>

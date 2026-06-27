@@ -6,8 +6,13 @@ docs_coursework/
 node_modules/
 
 backend/bin/
-# Compiled binary only (not backend/cmd/api — Railway treats "backend/api" as that tree).
+# Compiled binary only (not backend/cmd/api - Railway treats "backend/api" as that tree).
 /backend/api
 
 frontend/node_modules/
 frontend/dist/
+
+fuzzing/.venv/
+fuzzing/reports/*
+!fuzzing/reports/.gitkeep
+fuzzing/__pycache__/

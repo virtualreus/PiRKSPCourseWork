@@ -167,6 +167,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HackathonDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -189,6 +191,8 @@ paths:
                 $ref: "#/components/schemas/ParticipationStatus"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -254,6 +258,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
     post:
@@ -297,6 +303,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
     patch:
@@ -418,6 +426,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Submission"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           description: Сабмит ещё не создан
     put:
@@ -565,6 +577,12 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Track"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
     post:
       tags: [Tracks]
       summary: Создать трек
@@ -653,6 +671,12 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/Case"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
     post:
       tags: [Cases]
       summary: Создать кейс
@@ -742,6 +766,12 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/SubmissionWithTeam"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /organizer/hackathons/{hackathonId}/registrations:
     get:
@@ -763,6 +793,12 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/HackathonRegistrationWithUser"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
 components:
   securitySchemes:
@@ -802,6 +838,12 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
       description: Не найдено
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Недостаточно прав
       content:
         application/json:
           schema:

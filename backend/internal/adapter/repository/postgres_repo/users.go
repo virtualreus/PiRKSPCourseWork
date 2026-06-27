@@ -8,7 +8,6 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/nikitatisenko/pirksp/internal/domain/entities"
 	"github.com/nikitatisenko/pirksp/internal/domain/ports/repository"
@@ -38,8 +37,7 @@ func (r *usersRepository) Create(ctx context.Context, user entities.User) (entit
 
 	var created entities.User
 	if err := r.db.SqlxDB().QueryRowxContext(ctx, query, args...).StructScan(&created); err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		if isUniqueViolation(err) {
 			return entities.User{}, errs.ErrEmailTaken
 		}
 		logger.FromContext(ctx).Error("Create user failed", "err", err)

@@ -1,33 +1,33 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
-import * as hackathonsApi from '../api/hackathons';
-import type { HackathonDetail } from '../api/hackathonTypes';
-import * as participationApi from '../api/participation';
-import type { ParticipationStatus } from '../api/participationTypes';
-import { ApiError } from '../api/client';
-import { ParticipationAlert } from '../components/ParticipationAlert';
-import { Reveal } from '../components/Reveal';
-import { useAuth } from '../context/AuthContext';
-import { formatDate, statusLabel } from '../utils/hackathon';
+import * as hackathonsApi from "../api/hackathons";
+import type { HackathonDetail } from "../api/hackathonTypes";
+import * as participationApi from "../api/participation";
+import type { ParticipationStatus } from "../api/participationTypes";
+import { ApiError } from "../api/client";
+import { ParticipationAlert } from "../components/ParticipationAlert";
+import { Reveal } from "../components/Reveal";
+import { useAuth } from "../context/AuthContext";
+import { formatDate, statusLabel } from "../utils/hackathon";
 import {
   formatDeadlineRemaining,
   getStep3Hint,
   getSubmitBlockInfo,
   participationProgress,
-} from '../utils/participation';
+} from "../utils/participation";
 
 function stepChip(done: boolean, active: boolean, locked: boolean): string {
   if (done) {
-    return 'step-chip step-chip-done';
+    return "step-chip step-chip-done";
   }
   if (locked) {
-    return 'step-chip step-chip-locked';
+    return "step-chip step-chip-locked";
   }
   if (active) {
-    return 'step-chip step-chip-active';
+    return "step-chip step-chip-active";
   }
-  return 'step-chip';
+  return "step-chip";
 }
 
 export function ParticipatePage() {
@@ -35,8 +35,8 @@ export function ParticipatePage() {
   const { user } = useAuth();
   const [hackathon, setHackathon] = useState<HackathonDetail | null>(null);
   const [status, setStatus] = useState<ParticipationStatus | null>(null);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
@@ -63,7 +63,7 @@ export function ParticipatePage() {
         if (err instanceof ApiError) {
           setError(err.message);
         } else {
-          setError('Не удалось загрузить участие');
+          setError("Не удалось загрузить участие");
         }
       } finally {
         setLoading(false);
@@ -76,11 +76,11 @@ export function ParticipatePage() {
       return;
     }
     setBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     try {
       await participationApi.registerForHackathon(id);
-      setMessage('Вы зарегистрированы на хакатон');
+      setMessage("Вы зарегистрированы на хакатон");
       await reload();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -92,15 +92,15 @@ export function ParticipatePage() {
   }
 
   async function handleUnregister() {
-    if (!id || !confirm('Отменить регистрацию?')) {
+    if (!id || !confirm("Отменить регистрацию?")) {
       return;
     }
     setBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     try {
       await participationApi.unregisterFromHackathon(id);
-      setMessage('Регистрация отменена');
+      setMessage("Регистрация отменена");
       await reload();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -123,7 +123,7 @@ export function ParticipatePage() {
     return (
       <div className="card glass form-card">
         <p className="form-error">{error}</p>
-        <Link to={id ? `/hackathons/${id}` : '/'}>Назад к хакатону</Link>
+        <Link to={id ? `/hackathons/${id}` : "/"}>Назад к хакатону</Link>
       </div>
     );
   }
@@ -156,7 +156,7 @@ export function ParticipatePage() {
           <div>
             <h1 className="participate-title">Участие в хакатоне</h1>
             <p className="participate-lead">
-              {hackathon.short_description ?? hackathon.title} ·{' '}
+              {hackathon.short_description ?? hackathon.title} ·{" "}
               {statusLabel(status.hackathon_status)}
             </p>
           </div>
@@ -164,7 +164,9 @@ export function ParticipatePage() {
             <div className="deadline-card">
               <span className="deadline-label">Дедлайн сдачи</span>
               <strong>{formatDate(status.submission_deadline_at)}</strong>
-              {deadlineLeft && <span className="deadline-remaining">{deadlineLeft}</span>}
+              {deadlineLeft && (
+                <span className="deadline-remaining">{deadlineLeft}</span>
+              )}
             </div>
           )}
         </header>
@@ -178,8 +180,15 @@ export function ParticipatePage() {
               {progress.done} из {progress.total} шагов
             </strong>
           </div>
-          <div className="progress-bar" role="progressbar" aria-valuenow={progress.percent}>
-            <div className="progress-fill" style={{ width: `${progress.percent}%` }} />
+          <div
+            className="progress-bar"
+            role="progressbar"
+            aria-valuenow={progress.percent}
+          >
+            <div
+              className="progress-fill"
+              style={{ width: `${progress.percent}%` }}
+            />
           </div>
         </div>
       </Reveal>
@@ -201,20 +210,24 @@ export function ParticipatePage() {
       <div className="participate-steps">
         <Reveal delay={80}>
           <section
-            className={`card glass participate-step ${step1Done ? 'step-done' : ''} ${!status.can_register && !step1Done ? 'step-disabled' : ''}`}
+            className={`card glass participate-step ${step1Done ? "step-done" : ""} ${!status.can_register && !step1Done ? "step-disabled" : ""}`}
           >
-            <div className="step-indicator">{step1Done ? '✓' : '1'}</div>
+            <div className="step-indicator">{step1Done ? "✓" : "1"}</div>
             <div className="step-body">
               <div className="step-title-row">
                 <h2>Регистрация на хакатон</h2>
                 <span className={stepChip(step1Done, !step1Done, false)}>
-                  {step1Done ? 'Готово' : status.can_register ? 'Нужно действие' : 'Закрыто'}
+                  {step1Done
+                    ? "Готово"
+                    : status.can_register
+                      ? "Нужно действие"
+                      : "Закрыто"}
                 </span>
               </div>
               <p>
                 {step1Done
-                  ? `Вы в списке участников с ${formatDate(status.registration?.registered_at ?? '')}.`
-                  : 'Подтвердите участие — это откроет создание команды и сдачу решения.'}
+                  ? `Вы в списке участников с ${formatDate(status.registration?.registered_at ?? "")}.`
+                  : "Подтвердите участие - это откроет создание команды и сдачу решения."}
               </p>
               {step1Done ? (
                 <button
@@ -222,7 +235,7 @@ export function ParticipatePage() {
                   className="btn-ghost"
                   disabled={busy || Boolean(status.team)}
                   onClick={handleUnregister}
-                  title={status.team ? 'Сначала выйдите из команды' : undefined}
+                  title={status.team ? "Сначала выйдите из команды" : undefined}
                 >
                   Отменить регистрацию
                 </button>
@@ -242,36 +255,49 @@ export function ParticipatePage() {
 
         <Reveal delay={160}>
           <section
-            className={`card glass participate-step ${step2Done ? 'step-done' : ''} ${!step1Done ? 'step-disabled' : ''}`}
+            className={`card glass participate-step ${step2Done ? "step-done" : ""} ${!step1Done ? "step-disabled" : ""}`}
           >
-            <div className="step-indicator">{step2Done ? '✓' : '2'}</div>
+            <div className="step-indicator">{step2Done ? "✓" : "2"}</div>
             <div className="step-body">
               <div className="step-title-row">
                 <h2>Команда</h2>
                 <span
-                  className={stepChip(step2Done, step1Done && !step2Done, !step1Done)}
+                  className={stepChip(
+                    step2Done,
+                    step1Done && !step2Done,
+                    !step1Done,
+                  )}
                 >
-                  {step2Done ? 'Готово' : step1Done ? 'Нужно действие' : 'Сначала регистрация'}
+                  {step2Done
+                    ? "Готово"
+                    : step1Done
+                      ? "Нужно действие"
+                      : "Сначала регистрация"}
                 </span>
               </div>
               {step2Done && status.team ? (
                 <>
                   <p>
-                    Команда «<strong>{status.team.name}</strong>» ·{' '}
-                    {status.team.members.length} из {hackathon.max_team_size} мест
+                    Команда «<strong>{status.team.name}</strong>» ·{" "}
+                    {status.team.members.length} из {hackathon.max_team_size}{" "}
+                    мест
                   </p>
                   {!status.team.case_id && (
                     <p className="step-warning">
-                      Кейс не выбран — капитан должен указать трек и кейс перед сдачей.
+                      Кейс не выбран - капитан должен указать трек и кейс перед
+                      сдачей.
                     </p>
                   )}
                 </>
               ) : (
-                <p>Создайте свою команду или вступите в открытую — до {hackathon.max_team_size} человек.</p>
+                <p>
+                  Создайте свою команду или вступите в открытую - до{" "}
+                  {hackathon.max_team_size} человек.
+                </p>
               )}
               <Link
                 to={`/hackathons/${id}/team`}
-                className={`btn-secondary ${!step1Done ? 'btn-disabled' : ''}`}
+                className={`btn-secondary ${!step1Done ? "btn-disabled" : ""}`}
                 aria-disabled={!step1Done}
                 onClick={(e) => {
                   if (!step1Done) {
@@ -279,7 +305,7 @@ export function ParticipatePage() {
                   }
                 }}
               >
-                {step2Done ? 'Управление командой' : 'Собрать команду'}
+                {step2Done ? "Управление командой" : "Собрать команду"}
               </Link>
             </div>
           </section>
@@ -287,9 +313,9 @@ export function ParticipatePage() {
 
         <Reveal delay={240}>
           <section
-            className={`card glass participate-step ${step3Done ? 'step-done' : ''} ${!step2Done ? 'step-disabled' : ''}`}
+            className={`card glass participate-step ${step3Done ? "step-done" : ""} ${!step2Done ? "step-disabled" : ""}`}
           >
-            <div className="step-indicator">{step3Done ? '✓' : '3'}</div>
+            <div className="step-indicator">{step3Done ? "✓" : "3"}</div>
             <div className="step-body">
               <div className="step-title-row">
                 <h2>Сдача решения</h2>
@@ -301,18 +327,18 @@ export function ParticipatePage() {
                   )}
                 >
                   {step3Done
-                    ? 'Отправлено'
+                    ? "Отправлено"
                     : step2Done
                       ? status.can_submit
-                        ? 'Можно сдавать'
-                        : 'Требуется настройка'
-                      : 'Сначала команда'}
+                        ? "Можно сдавать"
+                        : "Требуется настройка"
+                      : "Сначала команда"}
                 </span>
               </div>
               <p>{getStep3Hint(status)}</p>
               <Link
                 to={`/hackathons/${id}/submission`}
-                className={`btn-primary ${!step2Done ? 'btn-disabled' : ''}`}
+                className={`btn-primary ${!step2Done ? "btn-disabled" : ""}`}
                 aria-disabled={!step2Done}
                 onClick={(e) => {
                   if (!step2Done) {
@@ -320,7 +346,7 @@ export function ParticipatePage() {
                   }
                 }}
               >
-                {step3Done ? 'Редактировать сдачу' : 'Перейти к сдаче'}
+                {step3Done ? "Редактировать сдачу" : "Перейти к сдаче"}
               </Link>
             </div>
           </section>
