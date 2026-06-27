@@ -1,0 +1,99 @@
+schemathesis 3.39.16
+
+Schemathesis protocol
+version: 3.39.16
+spec: /Users/nikitatisenko/PiRKSPCoursework/openapi.yaml
+base_url: http://127.0.0.1:8080/api/v1
+phase: public
+description: Публичные GET-эндпоинты без авторизации
+tags: Hackathons
+max_examples: 12
+checks: not_a_server_error, status_code_conformance, content_type_conformance
+
+1. GET /hackathons — PASS
+   Тег OpenAPI: Hackathons
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+2. GET /hackathons/{hackathonId} — PASS
+   Тег OpenAPI: Hackathons
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+
+Schemathesis protocol
+version: 3.39.16
+spec: /Users/nikitatisenko/PiRKSPCoursework/openapi.yaml
+base_url: http://127.0.0.1:8080/api/v1
+phase: participant
+description: GET-эндпоинты с JWT участника (user@user.ru)
+tags: Users, Participation, Teams, Submissions
+max_examples: 12
+checks: not_a_server_error, status_code_conformance, content_type_conformance
+
+1. GET /users/me — PASS
+   Тег OpenAPI: Users
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+2. GET /hackathons/{hackathonId}/participation — PASS
+   Тег OpenAPI: Participation
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+3. GET /hackathons/{hackathonId}/teams — PASS
+   Тег OpenAPI: Teams
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+4. GET /teams/{teamId} — PASS
+   Тег OpenAPI: Teams
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+5. GET /teams/{teamId}/submission — PASS
+   Тег OpenAPI: Submissions
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+6. GET /organizer/hackathons/{hackathonId}/submissions — PASS
+   Тег OpenAPI: Submissions
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+
+Schemathesis protocol
+version: 3.39.16
+spec: /Users/nikitatisenko/PiRKSPCoursework/openapi.yaml
+base_url: http://127.0.0.1:8080/api/v1
+phase: organizer
+description: GET-эндпоинты с JWT организатора (admin@admin.ru)
+tags: Organizer, Tracks, Cases
+max_examples: 12
+checks: not_a_server_error, status_code_conformance, content_type_conformance
+
+1. GET /organizer/hackathons — PASS
+   Тег OpenAPI: Organizer
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+2. GET /organizer/hackathons/{hackathonId}/submissions — PASS
+   Тег OpenAPI: Organizer
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+3. GET /organizer/hackathons/{hackathonId}/registrations — PASS
+   Тег OpenAPI: Organizer
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+4. GET /organizer/hackathons/{hackathonId}/tracks — PASS
+   Тег OpenAPI: Tracks
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+
+5. GET /organizer/tracks/{trackId}/cases — PASS
+   Тег OpenAPI: Cases
+   Примеры: до 12 сгенерированных запросов (Hypothesis)
+   Проверки: not_a_server_error, status_code_conformance, content_type_conformance
+

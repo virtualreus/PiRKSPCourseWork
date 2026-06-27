@@ -15,4 +15,5 @@ frontend/dist/
 fuzzing/.venv/
 fuzzing/reports/*
 !fuzzing/reports/.gitkeep
+!fuzzing/reports/*_latest.txt
 fuzzing/__pycache__/

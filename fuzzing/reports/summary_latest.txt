@@ -1,0 +1,9 @@
+API fuzz summary
+finished_at: 2026-06-27T12:52:45.486255+00:00
+target: http://127.0.0.1:8080/api/v1
+
+business: 13/13 PASS
+schemathesis: 13/13 PASS
+overall: PASS
+
+Подробный протокол: report_latest.txt
